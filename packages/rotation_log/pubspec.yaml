@@ -1,0 +1,21 @@
+name: rotation_log
+description: logger supported rotation files
+version: 0.0.1
+homepage: https://github.com/ueki-tomohiro/rotation_log
+
+environment:
+  sdk: ">=2.16.2 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.0.9
+  archive: ^3.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:
