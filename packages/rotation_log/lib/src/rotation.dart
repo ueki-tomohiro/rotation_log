@@ -69,6 +69,36 @@ class RotationLog {
     _lines = [];
   }
 
+  Future<String> archiveLog() async {
+    await close();
+
+    final documents = await getApplicationDocumentsDirectory();
+    final encoder = ZipFileEncoder();
+    final archivePath = documents.path + '/log.zip';
+    encoder.create(archivePath);
+
+    if (term.option == RotationLogTermEnum.line) {
+      final file = File(documents.path + "/rotation.log");
+      if (await file.exists()) {
+        await encoder.addFile(file);
+      }
+    } else {
+      final match = RegExp(r'^[0-9]+$');
+      await for (var entity
+          in documents.list(recursive: true, followLinks: false)) {
+        if (path.extension(entity.path) == ".log") {
+          final filename = path.basenameWithoutExtension(entity.path);
+          if (match.hasMatch(filename)) {
+            await encoder.addFile(File(entity.path));
+          }
+        }
+      }
+    }
+    encoder.close();
+
+    return archivePath;
+  }
+
   Future close() async {
     if (term.option == RotationLogTermEnum.line) {
       final documents = await getApplicationDocumentsDirectory();

@@ -63,5 +63,23 @@ void main() {
       expect(File(filename).existsSync(), true);
       File(filename).delete();
     });
+
+    test('archive log', () async {
+      final term = RotationLogTerm.line(2);
+      final log = RotationLog(term);
+      await log.init();
+      final filename = log.logFileName;
+      log.log(RotationLogLevelEnum.error, "archive log line");
+      log.log(RotationLogLevelEnum.error, "archive log line1");
+      log.log(RotationLogLevelEnum.error, "archive log line2");
+      log.log(RotationLogLevelEnum.error, "archive log line3");
+      log.log(RotationLogLevelEnum.error, "archive log line4");
+      log.log(RotationLogLevelEnum.error, "archive log line5");
+      final zipfile = await log.archiveLog();
+      expect(File(zipfile).existsSync(), true);
+      expect(File(filename).existsSync(), true);
+      File(zipfile).delete();
+      File(filename).delete();
+    });
   });
 }
