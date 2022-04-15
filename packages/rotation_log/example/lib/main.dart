@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:rotation_log/rotation_log.dart';
 import 'package:open_file/open_file.dart';
+import 'package:rotation_log/rotation_log.dart';
 
 final term = RotationLogTerm.term(RotationLogTermEnum.daily);
 final log = Logger(term);
@@ -14,7 +14,7 @@ Future main() async {
   runZonedGuarded(() async {
     runApp(const MyApp());
   }, (error, trace) {
-    log.log(RotationLogLevelEnum.error, error.toString());
+    log.exception(error, trace);
   });
 }
 

@@ -15,9 +15,15 @@ class Logger {
     await output.init(logfilePath);
   }
 
-  void err(Error error) {
+  void error(Error err) {
     final errorMessage = _resolveError(
-        errorMessage: error.toString(), stackTrace: error.stackTrace);
+        errorMessage: err.toString(), stackTrace: err.stackTrace);
+    log(RotationLogLevelEnum.error, errorMessage);
+  }
+
+  void exception(dynamic exception, StackTrace stackTrace) {
+    final errorMessage = _resolveError(
+        errorMessage: exception.toString(), stackTrace: stackTrace);
     log(RotationLogLevelEnum.error, errorMessage);
   }
 
