@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:rotation_log/rotation_log.dart';
 import 'package:open_file/open_file.dart';
+import 'package:rotation_log/rotation_log.dart';
 
 final term = RotationLogTerm.term(RotationLogTermEnum.daily);
-final log = RotationLog(term);
+final log = Logger(term);
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +14,7 @@ Future main() async {
   runZonedGuarded(() async {
     runApp(const MyApp());
   }, (error, trace) {
-    log.log(RotationLogLevelEnum.error, error.toString());
+    log.exception(error, trace);
   });
 }
 
@@ -27,8 +27,10 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-      ),home: const MyHomePage(title: 'Rotation Log'),
-    );  }
+      ),
+      home: const MyHomePage(title: 'Rotation Log'),
+    );
+  }
 }
 
 class MyHomePage extends StatefulWidget {
@@ -45,7 +47,11 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addLog() {
     setState(() {
       _counter++;
-      log.log(_counter % 2 == 0 ? RotationLogLevelEnum.info : RotationLogLevelEnum.error, "message$_counter");
+      log.log(
+          _counter % 2 == 0
+              ? RotationLogLevelEnum.info
+              : RotationLogLevelEnum.error,
+          "message$_counter");
     });
   }
 
@@ -55,51 +61,51 @@ class _MyHomePageState extends State<MyHomePage> {
     await log.init();
   }
 
-  @override void dispose() async {
+  @override
+  void dispose() async {
     await log.close();
     super.dispose();
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Add log:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        appBar: AppBar(
+          title: Text(widget.title),
         ),
-      ),
-      floatingActionButton:
-      Container(
-        margin: const EdgeInsets.only(left: 24),
-        child: Row(
-          children: [
-            FloatingActionButton(
-              onPressed: _downloadLog,
-              tooltip: 'Download',
-              child: const Icon(Icons.download),
-            ),
-            const SizedBox(width: 8,),
-            FloatingActionButton(
-              onPressed: _addLog,
-              tooltip: 'Add log',
-              child: const Icon(Icons.add),
-            ),
-          ],
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text(
+                'Add log:',
+              ),
+              Text(
+                '$_counter',
+                style: Theme.of(context).textTheme.headline4,
+              ),
+            ],
+          ),
         ),
-      )
-
-    );
+        floatingActionButton: Container(
+          margin: const EdgeInsets.only(left: 24),
+          child: Row(
+            children: [
+              FloatingActionButton(
+                onPressed: _downloadLog,
+                tooltip: 'Download',
+                child: const Icon(Icons.download),
+              ),
+              const SizedBox(
+                width: 8,
+              ),
+              FloatingActionButton(
+                onPressed: _addLog,
+                tooltip: 'Add log',
+                child: const Icon(Icons.add),
+              ),
+            ],
+          ),
+        ));
   }
 }

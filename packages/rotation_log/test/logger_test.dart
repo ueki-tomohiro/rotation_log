@@ -18,7 +18,7 @@ void main() {
 
     test('create log', () async {
       final term = RotationLogTerm.term(RotationLogTermEnum.daily);
-      final log = RotationLog(term);
+      final log = Logger(term);
       await log.init();
       final filename = log.logFileName;
       log.log(RotationLogLevelEnum.error, "create log");
@@ -32,12 +32,12 @@ void main() {
 
     test('rotation log', () async {
       final term = RotationLogTerm.term(RotationLogTermEnum.daily);
-      final log = RotationLog(term);
+      final log = Logger(term);
       await log.init();
       final oldname = log.logFileName;
       log.log(RotationLogLevelEnum.error, "rotation log");
       await log.close();
-      final after = RotationLog(term);
+      final after = Logger(term);
       await after.init();
       final filename = after.logFileName;
       after.log(RotationLogLevelEnum.error, "rotation log2");
@@ -50,7 +50,7 @@ void main() {
 
     test('create log line', () async {
       final term = RotationLogTerm.line(2);
-      final log = RotationLog(term);
+      final log = Logger(term);
       await log.init();
       final filename = log.logFileName;
       log.log(RotationLogLevelEnum.error, "create log line");
@@ -66,7 +66,7 @@ void main() {
 
     test('archive log', () async {
       final term = RotationLogTerm.line(2);
-      final log = RotationLog(term);
+      final log = Logger(term);
       await log.init();
       final filename = log.logFileName;
       log.log(RotationLogLevelEnum.error, "archive log line");

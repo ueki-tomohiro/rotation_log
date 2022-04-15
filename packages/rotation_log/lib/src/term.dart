@@ -38,25 +38,6 @@ class RotationLogTerm {
     }
   }
 
-  bool isNeedRotation(File file) {
-    if (option == RotationLogTermEnum.line) {
-      final lines = file.readAsBytesSync();
-      return lines.length > line;
-    } else {
-      final filename = path.basenameWithoutExtension(file.path);
-      final created = DateTime.fromMicrosecondsSinceEpoch(int.parse(filename));
-      return isNeedRotationFromDateTime(created);
-    }
-  }
-
-  bool isNeedRotationFromDateTime(DateTime created) {
-    final diff = clock.now().difference(created);
-    return diff.inDays > day;
-  }
-
-  String createFileName() =>
-      clock.now().microsecondsSinceEpoch.toString() + ".log";
-
   factory RotationLogTerm.term(RotationLogTermEnum option) =>
       RotationLogTerm(option);
 
