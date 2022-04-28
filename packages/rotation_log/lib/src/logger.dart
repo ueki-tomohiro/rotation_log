@@ -16,8 +16,8 @@ class Logger {
   }
 
   void error(Error err) {
-    final errorMessage = _resolveError(
-        errorMessage: err.toString(), stackTrace: err.stackTrace);
+    final errorMessage =
+        _resolveError(errorMessage: err.toString(), stackTrace: err.stackTrace);
     log(RotationLogLevelEnum.error, errorMessage);
   }
 
@@ -44,7 +44,7 @@ class Logger {
   }
 
   Future<Directory> _logFilePath() async {
-    final documents = await getApplicationDocumentsDirectory();
+    final documents = await getApplicationSupportDirectory();
     final logFilePath = Directory(documents.path + "/logs");
     if (logFilePath.existsSync()) {
       return logFilePath;
