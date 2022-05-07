@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fake_async/fake_async.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rotation_log/rotation_log.dart';
@@ -51,7 +51,10 @@ void main() {
     });
 
     test('rotation daily log', () async {
-      await FakeAsync().runWithClockOnly((fakeAsync) async {
+      final now = clock.now();
+      var elapsed = Duration.zero;
+      final _clock = Clock(() => now.add(elapsed));
+      await withClock(_clock, () async {
         final term = RotationLogTerm.term(RotationLogTermEnum.daily);
         final log = Logger(term);
 
@@ -61,7 +64,7 @@ void main() {
         log.log(RotationLogLevelEnum.error, "rotation log");
 
         await log.close();
-        fakeAsync.elapse(const Duration(days: 2));
+        elapsed = const Duration(days: 2);
         final after = Logger(term);
 
         await after.init();

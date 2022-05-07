@@ -3,7 +3,6 @@ description: logging supported rotation files
 version: 0.0.2
 homepage: https://playon.jp
 repository: https://github.com/ueki-tomohiro/rotation_log/tree/main/packages/rotation_log
-publish_to: none
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -19,14 +18,10 @@ dependencies:
   intl: ^0.17.0
   path: ^1.8.0
   stack_trace: ^1.10.0
+  fake_async: ^1.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^1.0.0
-dependency_overrides:
-  fake_async:
-    git:
-      url: git@github.com:ueki-tomohiro/fake_async.git
-      ref: fix-async
 flutter:
