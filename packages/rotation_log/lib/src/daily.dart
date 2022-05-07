@@ -13,7 +13,7 @@ class DailyOutput implements RotationOutput {
   String get logFileName => _logFileName ?? "";
 
   @override
-  Future init(Directory logfilePath) async {
+  Future<void> init(Directory logfilePath) async {
     final logFiles = await _logFilesInDirectory(logfilePath);
     for (var logfile in logFiles) {
       final filename = path.basenameWithoutExtension(logfile);
@@ -71,7 +71,7 @@ class DailyOutput implements RotationOutput {
   }
 
   @override
-  Future close(Directory logfilePath) async {
+  Future<void> close(Directory logfilePath) async {
     await _sink?.flush();
     await _sink?.close();
   }

@@ -4,10 +4,10 @@ enum RotationLogLevelEnum { info, debug, warning, error }
 
 abstract class RotationOutput {
   String get logFileName;
-  Future init(Directory logfilePath);
+  Future<void> init(Directory logfilePath);
   void append(String log);
   Future<String> archive(Directory logfilePath);
-  Future close(Directory logfilePath);
+  Future<void> close(Directory logfilePath);
 
   factory RotationOutput.fromTerm(RotationLogTerm term) {
     if (term.option == RotationLogTermEnum.line) {

@@ -10,7 +10,7 @@ class Logger {
     output = RotationOutput.fromTerm(term);
   }
 
-  Future init() async {
+  Future<void> init() async {
     final logfilePath = await _logFilePath();
     await output.init(logfilePath);
   }
@@ -38,7 +38,7 @@ class Logger {
     return await output.archive(logfilePath);
   }
 
-  Future close() async {
+  Future<void> close() async {
     final logfilePath = await _logFilePath();
     output.close(logfilePath);
   }

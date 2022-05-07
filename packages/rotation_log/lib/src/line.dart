@@ -12,7 +12,7 @@ class LineOutput implements RotationOutput {
   String get logFileName => _logFileName ?? "";
 
   @override
-  Future init(Directory documentsPath) async {
+  Future<void> init(Directory documentsPath) async {
     final file = File(documentsPath.path + "/rotation.log");
     _logFileName = file.absolute.path;
     _sink = file.openWrite(mode: FileMode.writeOnlyAppend);
@@ -47,7 +47,7 @@ class LineOutput implements RotationOutput {
   }
 
   @override
-  Future close(Directory logfilePath) async {
+  Future<void> close(Directory logfilePath) async {
     await _sink?.flush();
     await _sink?.close();
 
