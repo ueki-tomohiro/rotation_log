@@ -58,12 +58,14 @@ packages:
     source: hosted
     version: "3.0.1"
   fake_async:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
-      name: fake_async
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
+      path: "."
+      ref: fix-async
+      resolved-ref: b3a8427fd9a0d66e73047c1f7bfe7b53aa2521b8
+      url: "git@github.com:ueki-tomohiro/fake_async.git"
+    source: git
+    version: "1.3.1-dev"
   ffi:
     dependency: transitive
     description:
@@ -95,6 +97,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  intl:
+    dependency: "direct main"
+    description:
+      name: intl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.17.0"
   lints:
     dependency: transitive
     description:

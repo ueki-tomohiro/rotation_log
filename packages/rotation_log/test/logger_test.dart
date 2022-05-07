@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rotation_log/rotation_log.dart';
@@ -10,7 +11,8 @@ void main() {
     MethodChannel channel = MethodChannel(
         "plugins.flutter.io/path_provider_${Platform.operatingSystem}");
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      if (methodCall.method == "getApplicationDocumentsDirectory") {
+      if (methodCall.method == "getApplicationDocumentsDirectory" ||
+          methodCall.method == "getApplicationSupportDirectory") {
         return Directory.current.absolute.path;
       }
       return null;
@@ -46,6 +48,33 @@ void main() {
       expect(File(filename).existsSync(), true);
       File(oldname).delete();
       File(filename).delete();
+    });
+
+    test('rotation daily log', () async {
+      await FakeAsync().runWithClockOnly((fakeAsync) async {
+        final term = RotationLogTerm.term(RotationLogTermEnum.daily);
+        final log = Logger(term);
+
+        await log.init();
+
+        final oldname = log.logFileName;
+        log.log(RotationLogLevelEnum.error, "rotation log");
+
+        await log.close();
+        fakeAsync.elapse(const Duration(days: 2));
+        final after = Logger(term);
+
+        await after.init();
+
+        final filename = after.logFileName;
+        after.log(RotationLogLevelEnum.error, "rotation log2");
+
+        await after.close();
+
+        expect(File(oldname).existsSync(), false);
+        expect(File(filename).existsSync(), true);
+        File(filename).delete();
+      });
     });
 
     test('create log line', () async {
