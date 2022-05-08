@@ -23,40 +23,32 @@ void main() {
   });
 
   test('check rotation days', () {
-    withClock(
-      Clock.fixed(DateTime.parse("2020-11-10T12:00:00+09:00")),
-      () {
-        fakeAsync((FakeAsync fakeClock) {
-          final term = RotationLogTerm.term(RotationLogTermEnum.week);
-          final output = DailyOutput(term.day);
-          final log = output.createFileName();
-          final file = File(log);
-          expect(output.isNeedRotation(file), false);
-          fakeClock.elapse(const Duration(days: 8));
-          expect(output.isNeedRotation(file), true);
-        });
-      },
-    );
+    FakeAsync(initialTime: DateTime.parse("2020-11-10T12:00:00+09:00"))
+        .run((fake) {
+      final term = RotationLogTerm.term(RotationLogTermEnum.week);
+      final output = DailyOutput(term.day);
+      final log = output.createFileName();
+      final file = File(log);
+      expect(output.isNeedRotation(file), false);
+      fake.elapse(const Duration(days: 8));
+      expect(output.isNeedRotation(file), true);
+    });
   });
 
   test('check rotation line', () {
-    withClock(
-      Clock.fixed(DateTime.parse("2020-11-10T12:00:00+09:00")),
-      () {
-        fakeAsync((FakeAsync fakeClock) {
-          final output = LineOutput(100);
-          output.init(Directory.current);
-          final log = output.logFileName;
-          final file = File(log);
-          var list = List.generate(30, (i) => i.toString());
-          file.writeAsStringSync(list.join("\n"));
-          expect(output.isNeedRotation(file), false);
-          list = List.generate(200, (i) => i.toString());
-          file.writeAsStringSync(list.join("\n"));
-          expect(output.isNeedRotation(file), true);
-          file.deleteSync();
-        });
-      },
-    );
+    FakeAsync(initialTime: DateTime.parse("2020-11-10T12:00:00+09:00"))
+        .run((fakeClock) {
+      final output = LineOutput(100);
+      output.init(Directory.current);
+      final log = output.logFileName;
+      final file = File(log);
+      var list = List.generate(30, (i) => i.toString());
+      file.writeAsStringSync(list.join("\n"));
+      expect(output.isNeedRotation(file), false);
+      list = List.generate(200, (i) => i.toString());
+      file.writeAsStringSync(list.join("\n"));
+      expect(output.isNeedRotation(file), true);
+      file.deleteSync();
+    });
   });
 }
