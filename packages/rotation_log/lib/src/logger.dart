@@ -28,7 +28,7 @@ class Logger {
   }
 
   void log(RotationLogLevelEnum level, String message) {
-    append("[$level][${clock.now().toIso8601String()}]: $message");
+    append("[${level.label}][${clock.now().toIso8601String()}]: $message");
   }
 
   void append(String log) => output.append(log);

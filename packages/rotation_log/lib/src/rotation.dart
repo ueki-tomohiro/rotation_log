@@ -2,6 +2,10 @@ part of rotation_log;
 
 enum RotationLogLevelEnum { info, debug, warning, error }
 
+extension RotationLogLevelEnumExtension on RotationLogLevelEnum {
+  String get label => toString().split('.').last;
+}
+
 abstract class RotationOutput {
   String get logFileName;
   Future<void> init(Directory logfilePath);

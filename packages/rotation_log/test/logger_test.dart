@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:rotation_log/rotation_log.dart';
 
 void main() {
@@ -30,6 +31,15 @@ void main() {
       await log.close();
       expect(File(filename).existsSync(), true);
       File(filename).delete();
+
+      final now = DateTime(2000, 1, 1);
+      var elapsed = Duration.zero;
+      final _clock = Clock(() => now.add(elapsed));
+      await withClock(_clock, () async {
+        print(DateFormat.yMd().format(clock.now())); // 1/1/2000
+        elapsed = const Duration(days: 2);
+        print(DateFormat.yMd().format(clock.now())); // 1/2/2000
+      });
     });
 
     test('rotation log', () async {
