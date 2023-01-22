@@ -1,3 +1,7 @@
+## 0.0.4
+
+* support logger package
+
 ## 0.0.3
 
 * fix enum format
