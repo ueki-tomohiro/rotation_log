@@ -9,11 +9,11 @@ class LineOutput implements RotationOutput {
 
   String? _logFileName;
   @override
-  String get logFileName => _logFileName ?? "";
+  String get logFileName => _logFileName ?? '';
 
   @override
   Future<void> init(Directory documentsPath) async {
-    final file = File(documentsPath.path + "/rotation.log");
+    final file = File('${documentsPath.path}/rotation.log');
     _logFileName = file.absolute.path;
     _sink = file.openWrite(mode: FileMode.writeOnlyAppend);
   }
@@ -34,10 +34,10 @@ class LineOutput implements RotationOutput {
     await close(logfilePath);
 
     final encoder = ZipFileEncoder();
-    final archivePath = logfilePath.path + '/log.zip';
+    final archivePath = '${logfilePath.path}/log.zip';
     encoder.create(archivePath);
 
-    final file = File(logfilePath.path + "/rotation.log");
+    final file = File('${logfilePath.path}/rotation.log');
     if (await file.exists()) {
       await encoder.addFile(file);
     }
@@ -51,13 +51,13 @@ class LineOutput implements RotationOutput {
     await _sink?.flush();
     await _sink?.close();
 
-    final file = File(logfilePath.path + "/rotation.log");
+    final file = File('${logfilePath.path}/rotation.log');
     var lines = await file.readAsLines();
     if (lines.length > line) {
       lines = lines.skip(lines.length - line).toList();
     }
     final sink = file.openWrite();
-    sink.writeAll(lines, "\n");
+    sink.writeAll(lines, '\n');
     await sink.flush();
     await sink.close();
   }

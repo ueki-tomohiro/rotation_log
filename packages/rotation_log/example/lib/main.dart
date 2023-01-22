@@ -11,11 +11,9 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await log.init();
-  runZonedGuarded(() async {
+  await runZonedGuarded(() async {
     runApp(const MyApp());
-  }, (error, trace) {
-    log.exception(error, trace);
-  });
+  }, log.exception);
 }
 
 class MyApp extends StatelessWidget {
@@ -51,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _counter % 2 == 0
               ? RotationLogLevelEnum.info
               : RotationLogLevelEnum.error,
-          "message$_counter");
+          'message$_counter');
     });
   }
 
@@ -62,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void dispose() async {
+  Future<void> dispose() async {
     await log.close();
     super.dispose();
   }

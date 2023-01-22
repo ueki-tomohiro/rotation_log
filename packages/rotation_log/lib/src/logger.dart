@@ -28,7 +28,7 @@ class Logger {
   }
 
   void log(RotationLogLevelEnum level, String message) {
-    append("[${level.label}][${clock.now().toIso8601String()}]: $message");
+    append('[${level.label}][${clock.now().toIso8601String()}]: $message');
   }
 
   void append(String log) => output.append(log);
@@ -40,12 +40,12 @@ class Logger {
 
   Future<void> close() async {
     final logfilePath = await _logFilePath();
-    output.close(logfilePath);
+    await output.close(logfilePath);
   }
 
   Future<Directory> _logFilePath() async {
     final documents = await getApplicationSupportDirectory();
-    final logFilePath = Directory(documents.path + "/logs");
+    final logFilePath = Directory('${documents.path}/logs');
     if (logFilePath.existsSync()) {
       return logFilePath;
     } else {
@@ -54,23 +54,20 @@ class Logger {
   }
 
   String _resolveError({String? errorMessage, StackTrace? stackTrace}) {
-    return '$errorMessage\n' +
-        (stackTrace != null
-            ? Trace.from(stackTrace).frames.map((f) {
-                String member = f.member ?? "<anonymous>";
-                if (member == '<fn>') {
-                  member = '<anonymous>';
-                }
+    return '$errorMessage\n${stackTrace != null ? Trace.from(stackTrace).frames.map((f) {
+        String member = f.member ?? "<anonymous>";
+        if (member == '<fn>') {
+          member = '<anonymous>';
+        }
 
-                String loc = 'unknown location';
-                if (f.isCore) {
-                  loc = 'native';
-                } else if (f.line != null) {
-                  loc = '${f.uri}:${f.line}:${f.column ?? 0}';
-                }
+        String loc = 'unknown location';
+        if (f.isCore) {
+          loc = 'native';
+        } else if (f.line != null) {
+          loc = '${f.uri}:${f.line}:${f.column ?? 0}';
+        }
 
-                return '    at $member ($loc)\n';
-              }).join('')
-            : "");
+        return '    at $member ($loc)\n';
+      }).join('') : ""}';
   }
 }
