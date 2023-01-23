@@ -29,7 +29,7 @@ import 'package:logger/logger.dart';
 import 'package:rotation_log/rotation_log.dart';
 
 final rotationLogger = RotationLogger(RotationLogTerm.day(3));
-final logger = Logger(printer: RotationLogPrinter(rotationLogger));
+final logger = Logger(output: RotationLogOutput(rotationLogger));
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();

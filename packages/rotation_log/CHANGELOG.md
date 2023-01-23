@@ -1,3 +1,7 @@
+## 0.0.5
+
+* fix output
+
 ## 0.0.4
 
 * support logger package
