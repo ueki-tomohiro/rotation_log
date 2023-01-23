@@ -1,12 +1,12 @@
 part of rotation_log;
 
-class Logger {
+class RotationLogger {
   RotationLogTerm term;
   late RotationOutput output;
 
   String get logFileName => output.logFileName;
 
-  Logger(this.term) {
+  RotationLogger(this.term) {
     output = RotationOutput.fromTerm(term);
   }
 
@@ -18,16 +18,16 @@ class Logger {
   void error(Error err) {
     final errorMessage =
         _resolveError(errorMessage: err.toString(), stackTrace: err.stackTrace);
-    log(RotationLogLevelEnum.error, errorMessage);
+    log(Level.error, errorMessage);
   }
 
   void exception(dynamic exception, StackTrace stackTrace) {
     final errorMessage = _resolveError(
         errorMessage: exception.toString(), stackTrace: stackTrace);
-    log(RotationLogLevelEnum.error, errorMessage);
+    log(Level.error, errorMessage);
   }
 
-  void log(RotationLogLevelEnum level, String message) {
+  void log(Level level, String message) {
     append('[${level.label}][${clock.now().toIso8601String()}]: $message');
   }
 

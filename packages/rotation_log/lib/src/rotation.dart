@@ -1,8 +1,6 @@
 part of rotation_log;
 
-enum RotationLogLevelEnum { info, debug, warning, error }
-
-extension RotationLogLevelEnumExtension on RotationLogLevelEnum {
+extension LevelExtension on Level {
   String get label => toString().split('.').last;
 }
 

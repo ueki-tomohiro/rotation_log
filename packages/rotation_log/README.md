@@ -6,7 +6,7 @@ logger support rotation day or lines.
 import 'package:rotation_log/rotation_log.dart';
 
 final term = RotationLogTerm.term(RotationLogTermEnum.daily);
-final logger = Logger(term);
+final logger = RotationLogger(term);
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();

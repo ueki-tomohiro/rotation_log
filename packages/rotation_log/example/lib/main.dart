@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:rotation_log/rotation_log.dart';
+import 'package:logger/logger.dart';
 
 final term = RotationLogTerm.term(RotationLogTermEnum.daily);
-final log = Logger(term);
+final log = RotationLogger(term);
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,11 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addLog() {
     setState(() {
       _counter++;
-      log.log(
-          _counter % 2 == 0
-              ? RotationLogLevelEnum.info
-              : RotationLogLevelEnum.error,
-          'message$_counter');
+      log.log(_counter % 2 == 0 ? Level.info : Level.error, "message$_counter");
     });
   }
 
