@@ -10,7 +10,7 @@ class DailyOutput implements RotationOutput {
   String? _logFileName;
 
   @override
-  String get logFileName => _logFileName ?? "";
+  String get logFileName => _logFileName ?? '';
 
   @override
   Future<void> init(Directory logfilePath) async {
@@ -24,7 +24,7 @@ class DailyOutput implements RotationOutput {
     }
 
     final filename = createFileName();
-    final file = File(logfilePath.path + "/$filename");
+    final file = File('${logfilePath.path}/$filename');
     _logFileName = file.absolute.path;
     _sink = file.openWrite(mode: FileMode.writeOnly);
   }
@@ -43,8 +43,7 @@ class DailyOutput implements RotationOutput {
   }
 
   @visibleForTesting
-  String createFileName() =>
-      clock.now().microsecondsSinceEpoch.toString() + ".log";
+  String createFileName() => '${clock.now().microsecondsSinceEpoch}.log';
 
   @override
   void append(String log) {
@@ -56,12 +55,12 @@ class DailyOutput implements RotationOutput {
     await close(logfilePath);
 
     final encoder = ZipFileEncoder();
-    final archivePath = logfilePath.path + '/log.zip';
+    final archivePath = '${logfilePath.path}/log.zip';
     encoder.create(archivePath);
 
     final logFiles = await _logFilesInDirectory(logfilePath);
     for (var logfile in logFiles) {
-      if (path.extension(logfile) == ".log") {
+      if (path.extension(logfile) == '.log') {
         await encoder.addFile(File(logfile));
       }
     }
@@ -81,7 +80,7 @@ class DailyOutput implements RotationOutput {
     final match = RegExp(r'^[0-9]+$');
     await for (var entity
         in logfilePath.list(recursive: true, followLinks: false)) {
-      if (path.extension(entity.path) == ".log") {
+      if (path.extension(entity.path) == '.log') {
         final filename = path.basenameWithoutExtension(entity.path);
         if (match.hasMatch(filename)) {
           files.add(entity.absolute.path);

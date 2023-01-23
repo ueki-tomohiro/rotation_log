@@ -25,14 +25,14 @@ class RotationLogTerm {
         if (line != null) {
           this.line = line;
         } else {
-          throw ArgumentError("option needs line");
+          throw ArgumentError('option needs line');
         }
         break;
       case RotationLogTermEnum.custom:
         if (day != null) {
           this.day = day;
         } else {
-          throw ArgumentError("option needs day");
+          throw ArgumentError('option needs day');
         }
         break;
     }
