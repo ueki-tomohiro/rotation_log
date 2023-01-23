@@ -21,3 +21,25 @@ Future main() async {
   });
 }
 ```
+
+## support logger package
+
+```dart
+import 'package:logger/logger.dart';
+import 'package:rotation_log/rotation_log.dart';
+
+final rotationLogger = RotationLogger(RotationLogTerm.day(3));
+final logger = Logger(printer: RotationLogPrinter(rotationLogger));
+
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await rotationLogger.init();
+
+  FlutterError.onError = (details) {
+    logger.e(details.summary.toString(), details.exception, details.stack);
+  };
+
+  runApp(const MyApp());
+}
+```
