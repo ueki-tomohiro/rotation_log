@@ -13,6 +13,6 @@ import 'package:stack_trace/stack_trace.dart';
 part 'src/daily.dart';
 part 'src/line.dart';
 part 'src/logger.dart';
-part 'src/printer.dart';
+part 'src/output.dart';
 part 'src/rotation.dart';
 part 'src/term.dart';
