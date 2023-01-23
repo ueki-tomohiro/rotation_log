@@ -1,5 +1,6 @@
 name: rotation_log
 repository: https://github.com/ueki-tomohiro/rotation_log
+sdkPath: .fvm/flutter_sdk
 
 packages:
   - packages/**
@@ -17,17 +18,18 @@ scripts:
   lint:
     run: melos run analyze && melos run format
     description: Run all static analysis checks.
+
   analyze: melos exec -- "dart analyze ."
+
   format: 
-    run: dart pub global run flutter_plugin_tools format
-    description: Requires `flutter_plugin_tools` (`pub global activate flutter_plugin_tools`).
+    run: fvm flutter format --fix packages
+  
   test:
-    run: |
-      melos exec -c 6 --fail-fast -- \
-        "flutter test --no-pub"
-    description: Run `flutter test` for a specific package.
+    exec: fvm flutter test
     select-package:
       dir-exists:
         - test
       ignore:
         - "*example*"
+  
+  combine: melos exec "\$MELOS_ROOT_PATH/scripts/combine_test.sh"
