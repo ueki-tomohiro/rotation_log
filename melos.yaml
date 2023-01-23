@@ -32,4 +32,12 @@ scripts:
       ignore:
         - "*example*"
   
+  test-ci:
+    exec: fvm flutter test --machine > test.json
+    select-package:
+      dir-exists:
+        - test
+      ignore:
+        - "*example*"
+
   combine: melos exec "\$MELOS_ROOT_PATH/scripts/combine_test.sh"
