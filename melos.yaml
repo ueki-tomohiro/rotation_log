@@ -26,16 +26,16 @@ scripts:
   
   test:
     exec: fvm flutter test
-    select-package:
-      dir-exists:
+    packageFilters:
+      dirExists:
         - test
       ignore:
         - "*example*"
   
   test-ci:
     exec: fvm flutter test --machine > test.json
-    select-package:
-      dir-exists:
+    packageFilters:
+      dirExists:
         - test
       ignore:
         - "*example*"
