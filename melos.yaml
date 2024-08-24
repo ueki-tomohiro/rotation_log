@@ -22,7 +22,7 @@ scripts:
   analyze: melos exec -- "dart analyze ."
 
   format: 
-    run: fvm flutter format --fix packages
+    run: fvm dart format --fix packages
   
   test:
     exec: fvm flutter test
