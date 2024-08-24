@@ -64,7 +64,7 @@ class DailyOutput implements RotationOutput {
         await encoder.addFile(File(logfile));
       }
     }
-    encoder.close();
+    await encoder.close();
 
     return archivePath;
   }

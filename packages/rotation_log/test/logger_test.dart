@@ -9,9 +9,9 @@ import 'package:rotation_log/rotation_log.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('RotationLogTerm', () {
-    MethodChannel channel = MethodChannel(
-        'plugins.flutter.io/path_provider_${Platform.operatingSystem}');
-    channel.setMockMethodCallHandler((methodCall) async {
+    MethodChannel channel = MethodChannel('plugins.flutter.io/path_provider');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (methodCall) async {
       if (methodCall.method == 'getApplicationDocumentsDirectory' ||
           methodCall.method == 'getApplicationSupportDirectory') {
         return Directory.current.absolute.path;
@@ -24,10 +24,10 @@ void main() {
       final log = RotationLogger(term);
       await log.init();
       final filename = log.logFileName;
-      log.log(Level.error, "create log");
-      log.log(Level.error, "create log1");
-      log.log(Level.error, "create log2");
-      log.log(Level.error, "create log3");
+      log.log(Level.error, 'create log');
+      log.log(Level.error, 'create log1');
+      log.log(Level.error, 'create log2');
+      log.log(Level.error, 'create log3');
       await log.close();
       expect(File(filename).existsSync(), true);
       await File(filename).delete();
@@ -38,12 +38,12 @@ void main() {
       final log = RotationLogger(term);
       await log.init();
       final oldname = log.logFileName;
-      log.log(Level.error, "rotation log");
+      log.log(Level.error, 'rotation log');
       await log.close();
       final after = RotationLogger(term);
       await after.init();
       final filename = after.logFileName;
-      after.log(Level.error, "rotation log2");
+      after.log(Level.error, 'rotation log2');
       await after.close();
       expect(File(oldname).existsSync(), true);
       expect(File(filename).existsSync(), true);
@@ -62,7 +62,7 @@ void main() {
         await log.init();
 
         final oldname = log.logFileName;
-        log.log(Level.error, "rotation log");
+        log.log(Level.error, 'rotation log');
 
         await log.close();
         elapsed = const Duration(days: 2);
@@ -71,7 +71,7 @@ void main() {
         await after.init();
 
         final filename = after.logFileName;
-        after.log(Level.error, "rotation log2");
+        after.log(Level.error, 'rotation log2');
 
         await after.close();
 
@@ -86,12 +86,12 @@ void main() {
       final log = RotationLogger(term);
       await log.init();
       final filename = log.logFileName;
-      log.log(Level.error, "create log line");
-      log.log(Level.error, "create log line1");
-      log.log(Level.error, "create log line2");
-      log.log(Level.error, "create log line3");
-      log.log(Level.error, "create log line4");
-      log.log(Level.error, "create log line5");
+      log.log(Level.error, 'create log line');
+      log.log(Level.error, 'create log line1');
+      log.log(Level.error, 'create log line2');
+      log.log(Level.error, 'create log line3');
+      log.log(Level.error, 'create log line4');
+      log.log(Level.error, 'create log line5');
       await log.close();
       expect(File(filename).existsSync(), true);
       await File(filename).delete();
@@ -102,12 +102,12 @@ void main() {
       final log = RotationLogger(term);
       await log.init();
       final filename = log.logFileName;
-      log.log(Level.error, "archive log line");
-      log.log(Level.error, "archive log line1");
-      log.log(Level.error, "archive log line2");
-      log.log(Level.error, "archive log line3");
-      log.log(Level.error, "archive log line4");
-      log.log(Level.error, "archive log line5");
+      log.log(Level.error, 'archive log line');
+      log.log(Level.error, 'archive log line1');
+      log.log(Level.error, 'archive log line2');
+      log.log(Level.error, 'archive log line3');
+      log.log(Level.error, 'archive log line4');
+      log.log(Level.error, 'archive log line5');
       final zipfile = await log.archiveLog();
       expect(File(zipfile).existsSync(), true);
       expect(File(filename).existsSync(), true);
