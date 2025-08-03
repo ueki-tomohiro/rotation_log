@@ -78,8 +78,10 @@ class DailyOutput implements RotationOutput {
   Future<List<String>> _logFilesInDirectory(Directory logfilePath) async {
     List<String> files = [];
     final match = RegExp(r'^[0-9]+$');
-    await for (var entity
-        in logfilePath.list(recursive: true, followLinks: false)) {
+    await for (var entity in logfilePath.list(
+      recursive: true,
+      followLinks: false,
+    )) {
       if (path.extension(entity.path) == '.log') {
         final filename = path.basenameWithoutExtension(entity.path);
         if (match.hasMatch(filename)) {

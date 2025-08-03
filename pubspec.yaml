@@ -1,7 +1,8 @@
 name: mgdx_pharmacy_app_workspace
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
+dependencies:
+  melos: ^6.3.3
 dev_dependencies:
-  melos: ^5.2.1
-  lints: ^4.0.0
+  lints: ^6.0.0

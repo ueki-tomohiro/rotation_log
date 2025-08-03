@@ -7,22 +7,22 @@ import 'package:rotation_log/rotation_log.dart';
 
 void main() {
   test('create file', () {
-    withClock(
-      Clock.fixed(DateTime.parse('2020-11-10T12:00:00+09:00')),
-      () {
-        final term = RotationLogTerm.term(RotationLogTermEnum.week);
-        final output = DailyOutput(term.day);
-        expect(
-            output.createFileName(),
-            equals(
-                "${DateTime.parse("2020-11-10T12:00:00+09:00").microsecondsSinceEpoch}.log"));
-      },
-    );
+    withClock(Clock.fixed(DateTime.parse('2020-11-10T12:00:00+09:00')), () {
+      final term = RotationLogTerm.term(RotationLogTermEnum.week);
+      final output = DailyOutput(term.day);
+      expect(
+        output.createFileName(),
+        equals(
+          "${DateTime.parse("2020-11-10T12:00:00+09:00").microsecondsSinceEpoch}.log",
+        ),
+      );
+    });
   });
 
   test('check rotation days', () {
-    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00'))
-        .run((fake) {
+    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00')).run((
+      fake,
+    ) {
       final term = RotationLogTerm.term(RotationLogTermEnum.week);
       final output = DailyOutput(term.day);
       final log = output.createFileName();
@@ -34,8 +34,9 @@ void main() {
   });
 
   test('check rotation line', () {
-    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00'))
-        .run((fakeClock) {
+    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00')).run((
+      fakeClock,
+    ) {
       final output = LineOutput(100);
       output.init(Directory.current);
       final log = output.logFileName;
