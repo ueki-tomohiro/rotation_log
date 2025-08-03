@@ -41,7 +41,7 @@ class LineOutput implements RotationOutput {
     if (await file.exists()) {
       await encoder.addFile(file);
     }
-    encoder.close();
+    await encoder.close();
 
     return archivePath;
   }

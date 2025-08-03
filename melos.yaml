@@ -22,20 +22,20 @@ scripts:
   analyze: melos exec -- "dart analyze ."
 
   format: 
-    run: fvm flutter format --fix packages
+    run: fvm dart format --fix packages
   
   test:
     exec: fvm flutter test
-    select-package:
-      dir-exists:
+    packageFilters:
+      dirExists:
         - test
       ignore:
         - "*example*"
   
   test-ci:
     exec: fvm flutter test --machine > test.json
-    select-package:
-      dir-exists:
+    packageFilters:
+      dirExists:
         - test
       ignore:
         - "*example*"

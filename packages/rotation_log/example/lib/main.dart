@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:rotation_log/rotation_log.dart';
-import 'package:logger/logger.dart';
 
 final term = RotationLogTerm.term(RotationLogTermEnum.daily);
 final log = RotationLogger(term);
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addLog() {
     setState(() {
       _counter++;
-      log.log(_counter % 2 == 0 ? Level.info : Level.error, "message$_counter");
+      log.log(_counter % 2 == 0 ? Level.info : Level.error, 'message$_counter');
     });
   }
 
@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Text(
                 '$_counter',
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
             ],
           ),
