@@ -16,14 +16,18 @@ class RotationLogger {
   }
 
   void error(Error err) {
-    final errorMessage =
-        _resolveError(errorMessage: err.toString(), stackTrace: err.stackTrace);
+    final errorMessage = _resolveError(
+      errorMessage: err.toString(),
+      stackTrace: err.stackTrace,
+    );
     log(Level.error, errorMessage);
   }
 
   void exception(dynamic exception, StackTrace stackTrace) {
     final errorMessage = _resolveError(
-        errorMessage: exception.toString(), stackTrace: stackTrace);
+      errorMessage: exception.toString(),
+      stackTrace: stackTrace,
+    );
     log(Level.error, errorMessage);
   }
 

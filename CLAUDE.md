@@ -11,7 +11,7 @@
 ### 開発セットアップ
 ```bash
 # プロジェクトのブートストラップ（依存関係のインストール）
-melos bs
+melos bootstrap
 
 # すべてのlintチェックを実行（analyze + format）
 melos run lint
@@ -34,8 +34,8 @@ cd packages/rotation_log && flutter test test/specific_test.dart
 
 ### Flutterバージョン管理
 - プロジェクトはFVMを使用し、Flutter SDKは `.fvm/flutter_sdk` にあります
-- 必要なFlutterバージョン: >= 3.24.0
-- Dart SDK: >= 3.0.0 < 4.0.0
+- 必要なFlutterバージョン: >= 3.32.0
+- Dart SDK: >= 3.8.0 < 4.0.0
 
 ## アーキテクチャ
 
