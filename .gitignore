@@ -37,3 +37,6 @@ build/
 # Melos
 .melos_tool/
 .idea/runConfigurations/melos_*
+
+# Claude Code
+.claude/settings.local.json
