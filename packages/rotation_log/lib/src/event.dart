@@ -19,15 +19,17 @@ class RotationLogEvent {
   final List<String> tags;
   final Map<String, Object?> context;
 
-  Map<String, Object?> toJson() {
+  Map<String, Object?> toJson([
+    RotationStructuredLogSchema schema = const RotationStructuredLogSchema(),
+  ]) {
     return <String, Object?>{
-      'level': level.label,
-      'timestamp': (timestamp ?? clock.now()).toIso8601String(),
-      'message': message,
-      if (error != null) 'error': error.toString(),
-      if (stackTrace != null) 'stackTrace': stackTrace.toString(),
-      if (tags.isNotEmpty) 'tags': tags,
-      if (context.isNotEmpty) 'context': context,
+      schema.levelKey: level.label,
+      schema.timestampKey: (timestamp ?? clock.now()).toIso8601String(),
+      schema.messageKey: message,
+      if (error != null) schema.errorKey: error.toString(),
+      if (stackTrace != null) schema.stackTraceKey: stackTrace.toString(),
+      if (tags.isNotEmpty) schema.tagsKey: tags,
+      if (context.isNotEmpty) schema.contextKey: context,
     };
   }
 

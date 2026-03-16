@@ -401,5 +401,44 @@ void main() {
         },
       );
     });
+
+    test('structured log schema can rename output keys', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(
+          structuredLogSchema: RotationStructuredLogSchema(
+            levelKey: 'severity',
+            timestampKey: '@timestamp',
+            messageKey: 'msg',
+            errorKey: 'err',
+            stackTraceKey: 'trace',
+            tagsKey: 'labels',
+            contextKey: 'meta',
+          ),
+        ),
+      );
+
+      await logger.init();
+      logger.logJson(
+        Level.error,
+        'custom schema',
+        error: 'failure',
+        tags: const <String>['api'],
+        context: const <String, Object?>{'requestId': 'req-1'},
+      );
+
+      final payload = jsonDecode(
+        (await File(logger.logFileName).readAsLines()).single,
+      ) as Map<String, dynamic>;
+
+      expect(payload['severity'], 'error');
+      expect(payload['msg'], 'custom schema');
+      expect(payload['err'], 'failure');
+      expect(payload['labels'], <String>['api']);
+      expect(payload['meta'], <String, dynamic>{'requestId': 'req-1'});
+      expect(payload['@timestamp'], isA<String>());
+      expect(payload.containsKey('message'), false);
+      expect(payload.containsKey('context'), false);
+    });
   });
 }

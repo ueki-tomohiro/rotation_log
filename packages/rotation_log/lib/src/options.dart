@@ -2,6 +2,32 @@ part of rotation_log;
 
 enum RotationStructuredLogFormat { json, prettyJson }
 
+class RotationStructuredLogSchema {
+  const RotationStructuredLogSchema({
+    this.levelKey = 'level',
+    this.timestampKey = 'timestamp',
+    this.messageKey = 'message',
+    this.errorKey = 'error',
+    this.stackTraceKey = 'stackTrace',
+    this.tagsKey = 'tags',
+    this.contextKey = 'context',
+  }) : assert(levelKey != ''),
+       assert(timestampKey != ''),
+       assert(messageKey != ''),
+       assert(errorKey != ''),
+       assert(stackTraceKey != ''),
+       assert(tagsKey != ''),
+       assert(contextKey != '');
+
+  final String levelKey;
+  final String timestampKey;
+  final String messageKey;
+  final String errorKey;
+  final String stackTraceKey;
+  final String tagsKey;
+  final String contextKey;
+}
+
 class RotationLogOptions {
   const RotationLogOptions({
     this.directoryName = 'logs',
@@ -14,6 +40,7 @@ class RotationLogOptions {
     this.defaultContext = const <String, Object?>{},
     this.includeSessionId = false,
     this.sessionContextKey = 'sessionId',
+    this.structuredLogSchema = const RotationStructuredLogSchema(),
   }) : assert(directoryName != ''),
        assert(fileNamePrefix != ''),
        assert(archiveFileName != ''),
@@ -30,6 +57,7 @@ class RotationLogOptions {
   final Map<String, Object?> defaultContext;
   final bool includeSessionId;
   final String sessionContextKey;
+  final RotationStructuredLogSchema structuredLogSchema;
 
   String get activeLogFileName => '$fileNamePrefix.log';
 }

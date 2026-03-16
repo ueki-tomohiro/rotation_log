@@ -27,6 +27,10 @@ const options = RotationLogOptions(
   defaultTags: ['app'],
   defaultContext: {'build': 42},
   includeSessionId: true,
+  structuredLogSchema: RotationStructuredLogSchema(
+    timestampKey: '@timestamp',
+    messageKey: 'msg',
+  ),
 );
 ```
 
@@ -103,7 +107,8 @@ log.logEvent(
 You can raise the log threshold with `minimumLevel`, and switch structured
 logs between compact JSON and indented JSON with `structuredLogFormat`.
 `defaultTags`, `defaultContext`, and `includeSessionId` let you attach common
-metadata to every structured log event.
+metadata to every structured log event. `structuredLogSchema` lets you rename
+fields such as `timestamp` or `message` to match downstream log pipelines.
 
 ## Using with `logger`
 

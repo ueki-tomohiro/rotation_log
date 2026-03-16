@@ -147,7 +147,7 @@ class RotationLogger {
   }
 
   String _encodeStructuredEvent(RotationLogEvent event) {
-    final json = event.toJson();
+    final json = event.toJson(options.structuredLogSchema);
     switch (options.structuredLogFormat) {
       case RotationStructuredLogFormat.json:
         return jsonEncode(json);
