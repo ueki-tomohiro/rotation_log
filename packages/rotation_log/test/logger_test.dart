@@ -204,5 +204,56 @@ void main() {
       expect(payload['tags'], <String>['api']);
       expect(payload['context'], <String, dynamic>{'statusCode': 504});
     });
+
+    test('minimumLevel filters plain logs', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(minimumLevel: Level.warning),
+      );
+
+      await logger.init();
+      logger.log(Level.info, 'skip me');
+      logger.log(Level.error, 'keep me');
+
+      final lines = await File(logger.logFileName).readAsLines();
+      expect(lines, hasLength(1));
+      expect(lines.single, contains('keep me'));
+    });
+
+    test('minimumLevel filters structured logs', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(minimumLevel: Level.error),
+      );
+
+      await logger.init();
+      logger.logJson(Level.warning, 'warn');
+      logger.logJson(Level.error, 'error');
+
+      final lines = await File(logger.logFileName).readAsLines();
+      expect(lines, hasLength(1));
+      final payload = jsonDecode(lines.single) as Map<String, dynamic>;
+      expect(payload['message'], 'error');
+    });
+
+    test('pretty structured logs use indented JSON', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(50),
+        options: const RotationLogOptions(
+          structuredLogFormat: RotationStructuredLogFormat.prettyJson,
+        ),
+      );
+
+      await logger.init();
+      logger.logJson(
+        Level.info,
+        'pretty',
+        context: const <String, Object?>{'nested': true},
+      );
+
+      final contents = await File(logger.logFileName).readAsString();
+      expect(contents, contains('\n  "level": "info"'));
+      expect(contents, contains('\n  "context": {'));
+    });
   });
 }

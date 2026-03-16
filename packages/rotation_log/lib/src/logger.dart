@@ -43,11 +43,19 @@ class RotationLogger {
   }
 
   void log(Level level, String message) {
+    if (!_shouldLog(level)) {
+      return;
+    }
+
     append('[${level.label}][${clock.now().toIso8601String()}]: $message');
   }
 
   void logEvent(RotationLogEvent event) {
-    append(jsonEncode(event.toJson()));
+    if (!_shouldLog(event.level)) {
+      return;
+    }
+
+    append(_encodeStructuredEvent(event));
   }
 
   void logJson(
@@ -129,6 +137,20 @@ class RotationLogger {
     } else {
       _resolvedLogDirectory = await logFilePath.create(recursive: true);
       return _resolvedLogDirectory!;
+    }
+  }
+
+  bool _shouldLog(Level level) {
+    return level.value >= options.minimumLevel.value;
+  }
+
+  String _encodeStructuredEvent(RotationLogEvent event) {
+    final json = event.toJson();
+    switch (options.structuredLogFormat) {
+      case RotationStructuredLogFormat.json:
+        return jsonEncode(json);
+      case RotationStructuredLogFormat.prettyJson:
+        return const JsonEncoder.withIndent('  ').convert(json);
     }
   }
 

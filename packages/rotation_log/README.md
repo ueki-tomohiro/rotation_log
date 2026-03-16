@@ -22,6 +22,8 @@ const options = RotationLogOptions(
   fileNamePrefix: 'app',
   archiveFileName: 'support_bundle.zip',
   maxArchivedFiles: 5,
+  minimumLevel: Level.info,
+  structuredLogFormat: RotationStructuredLogFormat.json,
 );
 ```
 
@@ -94,6 +96,9 @@ log.logEvent(
   ),
 );
 ```
+
+You can raise the log threshold with `minimumLevel`, and switch structured
+logs between compact JSON and indented JSON with `structuredLogFormat`.
 
 ## Using with `logger`
 
