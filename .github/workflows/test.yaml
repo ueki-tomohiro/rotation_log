@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: set up repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
-      - name: flutter pub get
+      - name: bootstrap workspace
         run: melos bs
       - name: flutter lint
         run: melos run lint
@@ -23,9 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: set up repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/setup-flutter
-      - name: flutter pub get
+      - name: bootstrap workspace
         run: melos bs
       - name: flutter test
         run: melos run test-ci

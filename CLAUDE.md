@@ -4,7 +4,7 @@
 
 ## プロジェクト概要
 
-これは `rotation_log` という名前のFlutterパッケージで、ログファイルのローテーション機能を提供します。Melosを使用してモノレポとして管理されており、Flutter SDKの管理にはFVM (Flutter Version Manager) を使用しています。
+これは `rotation_log` という名前のFlutterパッケージで、ログファイルのローテーション機能を提供します。Melosを使用してモノレポとして管理されており、Flutter SDKとDart SDKの管理には `asdf` を使用しています。
 
 ## 必須コマンド
 
@@ -33,9 +33,9 @@ cd packages/rotation_log && flutter test test/specific_test.dart
 ```
 
 ### Flutterバージョン管理
-- プロジェクトはFVMを使用し、Flutter SDKは `.fvm/flutter_sdk` にあります
-- 必要なFlutterバージョン: >= 3.32.0
-- Dart SDK: >= 3.8.0 < 4.0.0
+- プロジェクトは `asdf` を使用し、バージョンは `.tool-versions` に定義されています
+- 現在のFlutterバージョン: `3.41.4-stable`
+- Dart SDK: `3.11.1`
 
 ## アーキテクチャ
 
@@ -92,7 +92,7 @@ cd packages/rotation_log && flutter test test/specific_test.dart
 GitHub Actionsワークフローが実行：
 1. Lintチェック (`melos run lint`)
 2. カバレッジレポート付きユニットテスト
-3. FVMサポート付きカスタムFlutterアクションを使用
+3. `asdf` でFlutter/DartをセットアップするカスタムGitHub Actionを使用
 4. 高速ビルドのための依存関係キャッシュ
 
 ## 重要な実装詳細

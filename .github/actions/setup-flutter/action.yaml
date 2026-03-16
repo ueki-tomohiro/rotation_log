@@ -1,44 +1,44 @@
 name: setup flutter
-description: setup flutter
+description: setup flutter with asdf
 runs:
   using: "composite"
   steps:
     - name: setup java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
-        java-version: "11"
-        distribution: "adopt"
-    - uses: dart-lang/setup-dart@v1
-    - name: restore fvm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/fvm/versions
-        key: ${{ runner.os }}-fvm-${{ hashFiles('.fvm/fvm_config.json') }}
-        restore-keys: |
-          ${{ runner.os }}-fvm-${{ hashFiles('.fvm/fvm_config.json') }}
-          ${{ runner.os }}-fvm-
-    - name: restore pubspec cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.pub-cache
-        key: ${{ runner.os }}-pubspec-${{ hashFiles('packages/app/pubspec.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pubspec-${{ hashFiles('packages/app/pubspec.lock') }}
-          ${{ runner.os }}-pubspec-
-    - name: restore dart_tool
-      uses: actions/cache@v3
+        java-version: "17"
+        distribution: "temurin"
+    - name: restore asdf cache
+      uses: actions/cache@v4
       with:
         path: |
-          packages/app/.dart_tool
+          ~/.asdf
+          ~/.pub-cache
+          ~/Library/Caches/flutter
+        key: ${{ runner.os }}-asdf-${{ hashFiles('.tool-versions') }}
+        restore-keys: |
+          ${{ runner.os }}-asdf-
+    - name: restore pubspec cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          .dart_tool
+          packages/rotation_log/.dart_tool
+          packages/rotation_log/example/.dart_tool
         key: ${{ runner.os }}-dart-tool-${{ hashFiles('**/pubspec.lock') }}
         restore-keys: |
-          ${{ runner.os }}-dart-tool-${{ hashFiles('**/pubspec.lock') }}
           ${{ runner.os }}-dart-tool-
-    - name: Install fvm
+    - name: install asdf tools
       run: |
-        dart pub global activate fvm
-        fvm install --verbose
+        if [ ! -d "$HOME/.asdf" ]; then
+          git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch v0.18.0
+        fi
+        echo "$HOME/.asdf/bin" >> "$GITHUB_PATH"
+        echo "$HOME/.asdf/shims" >> "$GITHUB_PATH"
+        asdf plugin add dart || true
+        asdf plugin add flutter || true
+        asdf install
       shell: bash
-    - name: Install melos command
+    - name: install melos command
       run: dart pub global activate melos
       shell: bash

@@ -1,6 +1,5 @@
 name: rotation_log
 repository: https://github.com/ueki-tomohiro/rotation_log
-sdkPath: .fvm/flutter_sdk
 
 packages:
   - packages/**
@@ -22,10 +21,10 @@ scripts:
   analyze: melos exec -- "dart analyze ."
 
   format: 
-    run: fvm dart format packages
+    run: dart format packages
   
   test:
-    exec: fvm flutter test
+    exec: flutter test
     packageFilters:
       dirExists:
         - test
@@ -33,7 +32,7 @@ scripts:
         - "*example*"
   
   test-ci:
-    exec: fvm flutter test --machine > test.json
+    exec: flutter test --machine > test.json
     packageFilters:
       dirExists:
         - test
