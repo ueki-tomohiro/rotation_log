@@ -1,5 +1,5 @@
 name: rotation_log
-description: logging supported rotation files
+description: Flutter logging helper with rotating files, structured logs, and ZIP export.
 version: 0.1.0
 homepage: https://playon.jp
 repository: https://github.com/ueki-tomohiro/rotation_log/tree/main/packages/rotation_log

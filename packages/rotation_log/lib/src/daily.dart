@@ -1,9 +1,14 @@
-part of rotation_log;
+part of 'package:rotation_log/rotation_log.dart';
 
+/// Rotates logs by elapsed calendar days.
 class DailyOutput implements RotationOutput {
+  /// Creates a daily-based output that keeps files for [day] days.
   final int day;
+
+  /// Options used to build file names and retention behavior.
   final RotationLogOptions options;
 
+  /// Creates a [DailyOutput].
   DailyOutput(this.day, this.options);
 
   late Directory _logDirectory;
@@ -21,16 +26,19 @@ class DailyOutput implements RotationOutput {
   }
 
   @visibleForTesting
+  /// Returns whether [file] should be rotated at the current time.
   bool isNeedRotation(File file) {
     return isNeedRotationFromDateTime(_createdAtFromFile(file), clock.now());
   }
 
   @visibleForTesting
+  /// Returns whether a file created at [created] should be rotated at [now].
   bool isNeedRotationFromDateTime(DateTime created, [DateTime? now]) {
     return _elapsedCalendarDays(created, now ?? clock.now()) >= day;
   }
 
   @visibleForTesting
+  /// Builds the next archived file name.
   String createFileName() =>
       '${options.fileNamePrefix}-${clock.now().microsecondsSinceEpoch}.log';
 
@@ -43,7 +51,9 @@ class DailyOutput implements RotationOutput {
       _createCurrentFile();
     }
 
-    File(_logFileName).writeAsStringSync('$log\n', mode: FileMode.writeOnlyAppend);
+    File(
+      _logFileName,
+    ).writeAsStringSync('$log\n', mode: FileMode.writeOnlyAppend);
   }
 
   @override
@@ -78,7 +88,9 @@ class DailyOutput implements RotationOutput {
       }
     }
 
-    final archiveFile = File(path.join(_logDirectory.path, options.archiveFileName));
+    final archiveFile = File(
+      path.join(_logDirectory.path, options.archiveFileName),
+    );
     if (archiveFile.existsSync()) {
       archiveFile.deleteSync();
     }

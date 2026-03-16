@@ -1,3 +1,8 @@
+/// File rotation logger for Flutter applications.
+///
+/// The package stores logs in the app support directory and can rotate files
+/// by age, line count, or file size. It also supports structured JSON output,
+/// archive export, and integration with the `logger` package.
 library rotation_log;
 
 import 'dart:convert';

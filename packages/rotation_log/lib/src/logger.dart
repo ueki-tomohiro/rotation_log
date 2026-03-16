@@ -1,20 +1,37 @@
-part of rotation_log;
+part of 'package:rotation_log/rotation_log.dart';
 
+/// Resolves the directory where log files should be stored.
 typedef RotationLogDirectoryProvider = Future<Directory> Function();
 
+/// Main entry point for writing and managing rotating log files.
 class RotationLogger {
+  /// Rotation policy used by this logger.
   final RotationLogTerm term;
+
+  /// Package options that control naming, formatting, and retention.
   final RotationLogOptions options;
+
+  /// Optional custom directory resolver for log storage.
   final RotationLogDirectoryProvider? directoryProvider;
+
+  /// Unique identifier for the current logger session.
   final String sessionId;
+
+  /// Timestamp captured when this logger instance was created.
   final DateTime sessionStartedAt;
+
+  /// Concrete output implementation selected from [term].
   late final RotationOutput output;
   Directory? _resolvedLogDirectory;
   bool _isInitialized = false;
 
+  /// Absolute path of the currently active log file.
   String get logFileName => output.logFileName;
+
+  /// Whether [init] has completed successfully.
   bool get isInitialized => _isInitialized;
 
+  /// Creates a logger using the given rotation [term].
   RotationLogger(
     this.term, {
     this.options = const RotationLogOptions(),
@@ -24,12 +41,14 @@ class RotationLogger {
     output = RotationOutput.fromTerm(term, options);
   }
 
+  /// Initializes the logger and prepares the current log file.
   Future<void> init() async {
     final logfilePath = await _logFilePath(useCache: false);
     await output.init(logfilePath);
     _isInitialized = true;
   }
 
+  /// Logs a Dart [Error] with its stack trace.
   void error(Error err) {
     final errorMessage = _resolveError(
       errorMessage: err.toString(),
@@ -38,6 +57,7 @@ class RotationLogger {
     log(Level.error, errorMessage);
   }
 
+  /// Logs an arbitrary exception with the provided [stackTrace].
   void exception(dynamic exception, StackTrace stackTrace) {
     final errorMessage = _resolveError(
       errorMessage: exception.toString(),
@@ -46,10 +66,12 @@ class RotationLogger {
     log(Level.error, errorMessage);
   }
 
+  /// Writes a plain-text log line.
   void log(Level level, String message) {
     logWithContext(level, message);
   }
 
+  /// Writes a plain-text log line with optional tags and structured context.
   void logWithContext(
     Level level,
     String message, {
@@ -73,6 +95,7 @@ class RotationLogger {
     append(rendered);
   }
 
+  /// Writes a structured event.
   void logEvent(RotationLogEvent event) {
     final decoratedEvent = _decorateEvent(event);
     if (!_shouldLog(decoratedEvent.level)) {
@@ -82,6 +105,7 @@ class RotationLogger {
     append(_encodeStructuredEvent(decoratedEvent));
   }
 
+  /// Writes a structured JSON event from primitive inputs.
   void logJson(
     Level level,
     String message, {
@@ -104,12 +128,15 @@ class RotationLogger {
     );
   }
 
+  /// Appends a pre-rendered log line directly to the output.
   void append(String log) => output.append(log);
 
+  /// Archives all managed log files into the default ZIP file.
   Future<String> archiveLog() async {
     return archiveLogs();
   }
 
+  /// Archives the selected log files into a ZIP file.
   Future<String> archiveLogs({
     String? archiveFileName,
     List<String>? filePaths,
@@ -123,15 +150,15 @@ class RotationLogger {
     );
   }
 
-  Future<String> archiveCurrentSessionLogs({
-    String? archiveFileName,
-  }) async {
+  /// Archives only files created in the current logger session.
+  Future<String> archiveCurrentSessionLogs({String? archiveFileName}) async {
     return archiveLogs(
       archiveFileName: archiveFileName,
       filePaths: await listCurrentSessionLogFiles(),
     );
   }
 
+  /// Closes the underlying output if the logger has been initialized.
   Future<void> close() async {
     if (!_isInitialized || _resolvedLogDirectory == null) {
       return;
@@ -140,22 +167,27 @@ class RotationLogger {
     await output.close(_resolvedLogDirectory!);
   }
 
+  /// Deletes all managed logs and resets the initialization state.
   Future<void> clearLogs() async {
     final logfilePath = await _logFilePath();
     await output.clear(logfilePath);
     _isInitialized = false;
   }
 
+  /// Lists absolute paths for active and archived log files.
   Future<List<String>> listLogFiles() async {
     final logfilePath = await _logFilePath();
     final files = await output.logFiles(logfilePath);
     return files.map((file) => file.absolute.path).toList(growable: false);
   }
 
+  /// Returns metadata for active, archived, and ZIP files.
   Future<List<RotationLogFileInfo>> listLogFileInfos() async {
     final logfilePath = await _logFilePath();
     final logFiles = await output.logFiles(logfilePath);
-    final archiveFile = File(path.join(logfilePath.path, options.archiveFileName));
+    final archiveFile = File(
+      path.join(logfilePath.path, options.archiveFileName),
+    );
     final files = <File>[
       ...logFiles,
       if (archiveFile.existsSync()) archiveFile,
@@ -163,6 +195,7 @@ class RotationLogger {
     return _buildFileInfos(files);
   }
 
+  /// Returns metadata for the currently active log file, if any.
   Future<RotationLogFileInfo?> currentLogFileInfo() async {
     final currentPath = logFileName;
     if (currentPath.isEmpty || !File(currentPath).existsSync()) {
@@ -173,21 +206,29 @@ class RotationLogger {
     return infos.isEmpty ? null : infos.single;
   }
 
+  /// Lists log files produced during the current logger session.
   Future<List<String>> listCurrentSessionLogFiles() async {
     final allFiles = await listLogFiles();
     return allFiles.where(_belongsToCurrentSession).toList(growable: false);
   }
 
+  /// Returns metadata for log files produced during the current session.
   Future<List<RotationLogFileInfo>> listCurrentSessionLogFileInfos() async {
     final currentSessionFiles = await listCurrentSessionLogFiles();
-    return _buildFileInfos(currentSessionFiles.map(File.new).toList(growable: false));
+    return _buildFileInfos(
+      currentSessionFiles.map(File.new).toList(growable: false),
+    );
   }
 
+  /// Applies retention rules and removes overflow files.
   Future<void> pruneLogs() async {
     final logfilePath = await _logFilePath();
     await output.prune(logfilePath);
   }
 
+  /// Flushes buffered output.
+  ///
+  /// Current implementations write synchronously, so this is a no-op.
   Future<void> flush() async {}
 
   Future<Directory> _logFilePath({bool useCache = true}) async {
@@ -239,17 +280,11 @@ class RotationLogger {
     );
     final mergedTags = _mergeTags(event.tags);
 
-    return event.copyWith(
-      tags: mergedTags,
-      context: mergedContext,
-    );
+    return event.copyWith(tags: mergedTags, context: mergedContext);
   }
 
   List<String> _mergeTags(List<String> tags) {
-    return <String>{
-      ...options.defaultTags,
-      ...tags,
-    }.toList(growable: false);
+    return <String>{...options.defaultTags, ...tags}.toList(growable: false);
   }
 
   Map<String, Object?> _mergeContext(
@@ -344,19 +379,19 @@ class RotationLogger {
 
   String _resolveError({String? errorMessage, StackTrace? stackTrace}) {
     return '$errorMessage\n${stackTrace != null ? Trace.from(stackTrace).frames.map((f) {
-        String member = f.member ?? "<anonymous>";
-        if (member == '<fn>') {
-          member = '<anonymous>';
-        }
+            String member = f.member ?? "<anonymous>";
+            if (member == '<fn>') {
+              member = '<anonymous>';
+            }
 
-        String loc = 'unknown location';
-        if (f.isCore) {
-          loc = 'native';
-        } else if (f.line != null) {
-          loc = '${f.uri}:${f.line}:${f.column ?? 0}';
-        }
+            String loc = 'unknown location';
+            if (f.isCore) {
+              loc = 'native';
+            } else if (f.line != null) {
+              loc = '${f.uri}:${f.line}:${f.column ?? 0}';
+            }
 
-        return '    at $member ($loc)\n';
-      }).join('') : ""}';
+            return '    at $member ($loc)\n';
+          }).join('') : ""}';
   }
 }

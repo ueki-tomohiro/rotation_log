@@ -1,6 +1,8 @@
-part of rotation_log;
+part of 'package:rotation_log/rotation_log.dart';
 
+/// A structured log event that can be encoded as JSON.
 class RotationLogEvent {
+  /// Creates a structured log event.
   const RotationLogEvent({
     required this.level,
     required this.message,
@@ -11,14 +13,28 @@ class RotationLogEvent {
     this.context = const <String, Object?>{},
   });
 
+  /// Severity of this event.
   final Level level;
+
+  /// Human-readable log message.
   final String message;
+
+  /// Event timestamp. When omitted, the current time is used during encoding.
   final DateTime? timestamp;
+
+  /// Optional error payload attached to the event.
   final Object? error;
+
+  /// Optional stack trace attached to the event.
   final StackTrace? stackTrace;
+
+  /// Tags that classify the event.
   final List<String> tags;
+
+  /// Arbitrary structured metadata for the event.
   final Map<String, Object?> context;
 
+  /// Converts the event into a JSON-ready map using [schema] field names.
   Map<String, Object?> toJson([
     RotationStructuredLogSchema schema = const RotationStructuredLogSchema(),
   ]) {
@@ -33,6 +49,7 @@ class RotationLogEvent {
     };
   }
 
+  /// Returns a copy with the provided fields replaced.
   RotationLogEvent copyWith({
     Level? level,
     String? message,

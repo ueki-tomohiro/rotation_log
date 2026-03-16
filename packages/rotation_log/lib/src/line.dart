@@ -1,4 +1,4 @@
-part of rotation_log;
+part of 'package:rotation_log/rotation_log.dart';
 
 abstract class _RollingOutput implements RotationOutput {
   _RollingOutput(this.options);
@@ -66,7 +66,9 @@ abstract class _RollingOutput implements RotationOutput {
       }
     }
 
-    final archiveFile = File(path.join(_logDirectory.path, options.archiveFileName));
+    final archiveFile = File(
+      path.join(_logDirectory.path, options.archiveFileName),
+    );
     if (archiveFile.existsSync()) {
       archiveFile.deleteSync();
     }
@@ -90,7 +92,8 @@ abstract class _RollingOutput implements RotationOutput {
 
   bool shouldRotate(File activeFile, String nextLog);
 
-  File get _activeFile => File(path.join(_logDirectory.path, options.activeLogFileName));
+  File get _activeFile =>
+      File(path.join(_logDirectory.path, options.activeLogFileName));
 
   List<File> _archivedFiles() {
     if (!_logDirectory.existsSync()) {
@@ -169,12 +172,16 @@ abstract class _RollingOutput implements RotationOutput {
   }
 }
 
+/// Rotates logs after a configured number of written lines.
 class LineOutput extends _RollingOutput {
+  /// Maximum number of lines allowed before rotation.
   final int line;
 
+  /// Creates a line-based output.
   LineOutput(this.line, RotationLogOptions options) : super(options);
 
   @visibleForTesting
+  /// Returns whether [file] has reached the configured line threshold.
   bool isNeedRotation(File file) {
     if (!file.existsSync()) {
       return false;
