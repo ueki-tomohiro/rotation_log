@@ -24,6 +24,9 @@ const options = RotationLogOptions(
   maxArchivedFiles: 5,
   minimumLevel: Level.info,
   structuredLogFormat: RotationStructuredLogFormat.json,
+  defaultTags: ['app'],
+  defaultContext: {'build': 42},
+  includeSessionId: true,
 );
 ```
 
@@ -99,6 +102,8 @@ log.logEvent(
 
 You can raise the log threshold with `minimumLevel`, and switch structured
 logs between compact JSON and indented JSON with `structuredLogFormat`.
+`defaultTags`, `defaultContext`, and `includeSessionId` let you attach common
+metadata to every structured log event.
 
 ## Using with `logger`
 

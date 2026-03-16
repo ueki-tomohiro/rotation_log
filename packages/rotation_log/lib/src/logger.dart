@@ -6,6 +6,7 @@ class RotationLogger {
   final RotationLogTerm term;
   final RotationLogOptions options;
   final RotationLogDirectoryProvider? directoryProvider;
+  final String sessionId;
   late final RotationOutput output;
   Directory? _resolvedLogDirectory;
   bool _isInitialized = false;
@@ -16,7 +17,7 @@ class RotationLogger {
     this.term, {
     this.options = const RotationLogOptions(),
     this.directoryProvider,
-  }) {
+  }) : sessionId = _createSessionId() {
     output = RotationOutput.fromTerm(term, options);
   }
 
@@ -51,11 +52,12 @@ class RotationLogger {
   }
 
   void logEvent(RotationLogEvent event) {
-    if (!_shouldLog(event.level)) {
+    final decoratedEvent = _decorateEvent(event);
+    if (!_shouldLog(decoratedEvent.level)) {
       return;
     }
 
-    append(_encodeStructuredEvent(event));
+    append(_encodeStructuredEvent(decoratedEvent));
   }
 
   void logJson(
@@ -152,6 +154,27 @@ class RotationLogger {
       case RotationStructuredLogFormat.prettyJson:
         return const JsonEncoder.withIndent('  ').convert(json);
     }
+  }
+
+  RotationLogEvent _decorateEvent(RotationLogEvent event) {
+    final mergedContext = <String, Object?>{
+      ...options.defaultContext,
+      if (options.includeSessionId) options.sessionContextKey: sessionId,
+      ...event.context,
+    };
+    final mergedTags = <String>{
+      ...options.defaultTags,
+      ...event.tags,
+    }.toList(growable: false);
+
+    return event.copyWith(
+      tags: mergedTags,
+      context: mergedContext,
+    );
+  }
+
+  static String _createSessionId() {
+    return '${clock.now().microsecondsSinceEpoch}-$pid';
   }
 
   String _resolveError({String? errorMessage, StackTrace? stackTrace}) {

@@ -20,6 +20,7 @@ time, line count, or file size, and can export the current log set as a ZIP.
 - Automatic time-based rollover while the app is still running.
 - Configurable log directory name, file prefix, archive file name, and max archive count.
 - Configurable minimum log level and structured log format.
+- Shared tags, shared context, and optional session metadata for structured logs.
 - Non-destructive `archiveLog()` export.
 - `listLogFiles()`, `pruneLogs()`, `clearLogs()` management APIs.
 - Structured JSON logging with `logJson()` and `logEvent()`.

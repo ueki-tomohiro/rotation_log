@@ -255,5 +255,84 @@ void main() {
       expect(contents, contains('\n  "level": "info"'));
       expect(contents, contains('\n  "context": {'));
     });
+
+    test('default tags and context are added to structured logs', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(
+          defaultTags: <String>['app', 'mobile'],
+          defaultContext: <String, Object?>{
+            'appVersion': '1.2.3',
+            'build': 42,
+          },
+        ),
+      );
+
+      await logger.init();
+      logger.logJson(
+        Level.info,
+        'boot',
+        tags: const <String>['startup'],
+        context: const <String, Object?>{'region': 'ap-northeast-1'},
+      );
+
+      final payload = jsonDecode(
+        (await File(logger.logFileName).readAsLines()).single,
+      ) as Map<String, dynamic>;
+
+      expect(payload['tags'], <String>['app', 'mobile', 'startup']);
+      expect(
+        payload['context'],
+        <String, dynamic>{
+          'appVersion': '1.2.3',
+          'build': 42,
+          'region': 'ap-northeast-1',
+        },
+      );
+    });
+
+    test('event context overrides default context keys', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(
+          defaultContext: <String, Object?>{
+            'region': 'global',
+            'build': 1,
+          },
+        ),
+      );
+
+      await logger.init();
+      logger.logJson(
+        Level.info,
+        'override',
+        context: const <String, Object?>{'region': 'jp'},
+      );
+
+      final payload = jsonDecode(
+        (await File(logger.logFileName).readAsLines()).single,
+      ) as Map<String, dynamic>;
+
+      expect(
+        payload['context'],
+        <String, dynamic>{'region': 'jp', 'build': 1},
+      );
+    });
+
+    test('session id is injected when enabled', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(includeSessionId: true),
+      );
+
+      await logger.init();
+      logger.logJson(Level.info, 'session aware');
+
+      final payload = jsonDecode(
+        (await File(logger.logFileName).readAsLines()).single,
+      ) as Map<String, dynamic>;
+
+      expect(payload['context']['sessionId'], logger.sessionId);
+    });
   });
 }
