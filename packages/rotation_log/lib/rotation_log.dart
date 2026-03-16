@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 part 'src/daily.dart';
+part 'src/event.dart';
 part 'src/line.dart';
 part 'src/logger.dart';
 part 'src/options.dart';

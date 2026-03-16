@@ -11,6 +11,7 @@ support directory and rotates them by time, line count, or file size.
 - Keep only the newest archived files with `maxArchivedFiles`.
 - Export logs to ZIP without reopening the logger.
 - List, prune, or clear generated logs.
+- Write structured JSON logs with `logJson(...)` or `logEvent(...)`.
 - Forward logs from the `logger` package through `RotationLogOutput`.
 
 ## Configuration
@@ -71,6 +72,27 @@ final archivePath = await log.archiveLog();
 final files = await log.listLogFiles();
 await log.pruneLogs();
 await log.clearLogs();
+```
+
+## Structured logs
+
+```dart
+log.logJson(
+  Level.warning,
+  'network retry',
+  tags: const ['network', 'retry'],
+  context: const {'attempt': 2, 'endpoint': '/health'},
+);
+
+log.logEvent(
+  RotationLogEvent(
+    level: Level.error,
+    message: 'request failed',
+    error: 'timeout',
+    stackTrace: StackTrace.current,
+    context: const {'statusCode': 504},
+  ),
+);
 ```
 
 ## Using with `logger`

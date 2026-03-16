@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -148,6 +149,60 @@ void main() {
         Directory(path.join(baseDirectory.path, 'custom_logs')).existsSync(),
         true,
       );
+    });
+
+    test('logJson writes a structured JSON line', () async {
+      final logger = createLogger(RotationLogTerm.line(10));
+
+      await logger.init();
+      logger.logJson(
+        Level.warning,
+        'network retry',
+        tags: const <String>['network', 'retry'],
+        context: const <String, Object?>{
+          'attempt': 2,
+          'endpoint': '/health',
+        },
+      );
+
+      final lines = await File(logger.logFileName).readAsLines();
+      final payload = jsonDecode(lines.single) as Map<String, dynamic>;
+
+      expect(payload['level'], 'warning');
+      expect(payload['message'], 'network retry');
+      expect(payload['tags'], <String>['network', 'retry']);
+      expect(
+        payload['context'],
+        <String, dynamic>{'attempt': 2, 'endpoint': '/health'},
+      );
+      expect(payload['timestamp'], isA<String>());
+    });
+
+    test('logEvent includes error and stack trace fields', () async {
+      final logger = createLogger(RotationLogTerm.line(10));
+      final stackTrace = StackTrace.current;
+
+      await logger.init();
+      logger.logEvent(
+        RotationLogEvent(
+          level: Level.error,
+          message: 'request failed',
+          error: 'timeout',
+          stackTrace: stackTrace,
+          tags: const <String>['api'],
+          context: const <String, Object?>{'statusCode': 504},
+        ),
+      );
+
+      final lines = await File(logger.logFileName).readAsLines();
+      final payload = jsonDecode(lines.single) as Map<String, dynamic>;
+
+      expect(payload['level'], 'error');
+      expect(payload['message'], 'request failed');
+      expect(payload['error'], 'timeout');
+      expect(payload['stackTrace'], contains('logger_test.dart'));
+      expect(payload['tags'], <String>['api']);
+      expect(payload['context'], <String, dynamic>{'statusCode': 504});
     });
   });
 }

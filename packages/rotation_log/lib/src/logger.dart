@@ -46,6 +46,32 @@ class RotationLogger {
     append('[${level.label}][${clock.now().toIso8601String()}]: $message');
   }
 
+  void logEvent(RotationLogEvent event) {
+    append(jsonEncode(event.toJson()));
+  }
+
+  void logJson(
+    Level level,
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    List<String> tags = const <String>[],
+    Map<String, Object?> context = const <String, Object?>{},
+    DateTime? timestamp,
+  }) {
+    logEvent(
+      RotationLogEvent(
+        level: level,
+        message: message,
+        timestamp: timestamp,
+        error: error,
+        stackTrace: stackTrace,
+        tags: tags,
+        context: context,
+      ),
+    );
+  }
+
   void append(String log) => output.append(log);
 
   Future<String> archiveLog() async {

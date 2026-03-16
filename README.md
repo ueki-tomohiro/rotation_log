@@ -21,6 +21,7 @@ time, line count, or file size, and can export the current log set as a ZIP.
 - Configurable log directory name, file prefix, archive file name, and max archive count.
 - Non-destructive `archiveLog()` export.
 - `listLogFiles()`, `pruneLogs()`, `clearLogs()` management APIs.
+- Structured JSON logging with `logJson()` and `logEvent()`.
 - Integration with the `logger` package through `RotationLogOutput`.
 
 ## Requirements
