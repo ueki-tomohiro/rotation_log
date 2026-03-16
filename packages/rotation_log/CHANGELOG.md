@@ -1,3 +1,12 @@
+## 0.1.0
+
+* migrate workspace tooling to `asdf` and newer Flutter/Dart
+* add automatic time-based rotation while the app is running
+* add rolling rotation by line count and file size
+* add configurable logger options, structured logging, and shared metadata
+* add structured forwarding for the `logger` package
+* add plain text formatting options and log file management APIs
+
 ## 0.0.8
 
 * update package
