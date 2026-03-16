@@ -1,3 +1,8 @@
+## 0.1.1
+
+* improve pub.dev package metadata and API documentation
+* switch `part of` declarations to package URIs for cleaner analyzer output
+
 ## 0.1.0
 
 * migrate workspace tooling to `asdf` and newer Flutter/Dart
