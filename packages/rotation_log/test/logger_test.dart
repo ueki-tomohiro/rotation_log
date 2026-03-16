@@ -151,6 +151,37 @@ void main() {
       );
     });
 
+    test('plain text options format contextual logs', () async {
+      final now = DateTime.parse('2026-03-17T12:34:56Z');
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(
+          defaultTags: <String>['app'],
+          defaultContext: <String, Object?>{'build': 42},
+          plainTextOptions: RotationPlainTextOptions(
+            prefix: 'APP',
+            timestampPattern: 'yyyy/MM/dd HH:mm:ss',
+            includeSessionId: true,
+          ),
+        ),
+      );
+
+      await logger.init();
+      logger.logWithContext(
+        Level.info,
+        'boot',
+        timestamp: now,
+        tags: const <String>['startup'],
+        context: const <String, Object?>{'region': 'jp'},
+      );
+
+      final line = (await File(logger.logFileName).readAsLines()).single;
+      expect(line, contains('APP [info] [2026/03/17 12:34:56] [app,startup] boot'));
+      expect(line, contains('build=42'));
+      expect(line, contains('region=jp'));
+      expect(line, contains('sessionId=${logger.sessionId}'));
+    });
+
     test('logJson writes a structured JSON line', () async {
       final logger = createLogger(RotationLogTerm.line(10));
 
@@ -333,6 +364,62 @@ void main() {
       ) as Map<String, dynamic>;
 
       expect(payload['context']['sessionId'], logger.sessionId);
+    });
+
+    test('listLogFileInfos includes active and archive files', () async {
+      final logger = createLogger(RotationLogTerm.line(1));
+
+      await logger.init();
+      logger.log(Level.info, 'one');
+      logger.log(Level.info, 'two');
+      await logger.archiveLogs();
+
+      final infos = await logger.listLogFileInfos();
+      expect(infos.where((info) => info.isActiveLog), hasLength(1));
+      expect(infos.where((info) => info.isArchive), hasLength(1));
+      expect(infos.every((info) => info.sizeBytes >= 0), true);
+    });
+
+    test('listCurrentSessionLogFiles excludes older archived logs', () async {
+      final oldFile = File(
+        path.join(tempDirectory.path, 'rotation-1.log'),
+      )..createSync(recursive: true);
+      oldFile.writeAsStringSync('legacy');
+
+      final logger = createLogger(RotationLogTerm.line(1));
+      await logger.init();
+      logger.log(Level.info, 'one');
+      logger.log(Level.info, 'two');
+
+      final files = await logger.listCurrentSessionLogFiles();
+      expect(files.any((file) => file.endsWith('rotation-1.log')), false);
+      expect(files.any((file) => file.endsWith('rotation.log')), true);
+      expect(files.length, greaterThanOrEqualTo(2));
+    });
+
+    test('archiveCurrentSessionLogs creates custom archive from current session files', () async {
+      final logger = createLogger(RotationLogTerm.line(1));
+
+      await logger.init();
+      logger.log(Level.info, 'one');
+      logger.log(Level.info, 'two');
+
+      final archivePath = await logger.archiveCurrentSessionLogs(
+        archiveFileName: 'session.zip',
+      );
+
+      expect(path.basename(archivePath), 'session.zip');
+      expect(File(archivePath).existsSync(), true);
+    });
+
+    test('isInitialized changes with lifecycle', () async {
+      final logger = createLogger(RotationLogTerm.line(10));
+
+      expect(logger.isInitialized, false);
+      await logger.init();
+      expect(logger.isInitialized, true);
+      await logger.clearLogs();
+      expect(logger.isInitialized, false);
     });
 
     test('RotationLogOutput keeps rendered lines in plain mode', () async {

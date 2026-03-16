@@ -41,6 +41,7 @@ class RotationLogOptions {
     this.includeSessionId = false,
     this.sessionContextKey = 'sessionId',
     this.structuredLogSchema = const RotationStructuredLogSchema(),
+    this.plainTextOptions = const RotationPlainTextOptions(),
   }) : assert(directoryName != ''),
        assert(fileNamePrefix != ''),
        assert(archiveFileName != ''),
@@ -58,6 +59,7 @@ class RotationLogOptions {
   final bool includeSessionId;
   final String sessionContextKey;
   final RotationStructuredLogSchema structuredLogSchema;
+  final RotationPlainTextOptions plainTextOptions;
 
   String get activeLogFileName => '$fileNamePrefix.log';
 }

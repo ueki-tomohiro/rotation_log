@@ -31,6 +31,11 @@ const options = RotationLogOptions(
     timestampKey: '@timestamp',
     messageKey: 'msg',
   ),
+  plainTextOptions: RotationPlainTextOptions(
+    prefix: 'APP',
+    timestampPattern: 'yyyy/MM/dd HH:mm:ss',
+    includeSessionId: true,
+  ),
 );
 ```
 
@@ -78,9 +83,27 @@ final keepFilesUnder1Mb = RotationLogger(
 
 ```dart
 final archivePath = await log.archiveLog();
+final sessionArchivePath = await log.archiveCurrentSessionLogs(
+  archiveFileName: 'session.zip',
+);
 final files = await log.listLogFiles();
+final fileInfos = await log.listLogFileInfos();
+final currentFile = await log.currentLogFileInfo();
+final currentSessionFiles = await log.listCurrentSessionLogFiles();
 await log.pruneLogs();
+await log.flush();
 await log.clearLogs();
+```
+
+## Plain text logs
+
+```dart
+log.logWithContext(
+  Level.info,
+  'boot complete',
+  tags: const ['startup'],
+  context: const {'region': 'jp'},
+);
 ```
 
 ## Structured logs
@@ -109,6 +132,8 @@ logs between compact JSON and indented JSON with `structuredLogFormat`.
 `defaultTags`, `defaultContext`, and `includeSessionId` let you attach common
 metadata to every structured log event. `structuredLogSchema` lets you rename
 fields such as `timestamp` or `message` to match downstream log pipelines.
+`plainTextOptions` controls the prefix, timestamp format, and session metadata
+used by plain text log lines.
 
 ## Using with `logger`
 

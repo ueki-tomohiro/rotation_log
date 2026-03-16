@@ -7,17 +7,20 @@ class RotationLogger {
   final RotationLogOptions options;
   final RotationLogDirectoryProvider? directoryProvider;
   final String sessionId;
+  final DateTime sessionStartedAt;
   late final RotationOutput output;
   Directory? _resolvedLogDirectory;
   bool _isInitialized = false;
 
   String get logFileName => output.logFileName;
+  bool get isInitialized => _isInitialized;
 
   RotationLogger(
     this.term, {
     this.options = const RotationLogOptions(),
     this.directoryProvider,
-  }) : sessionId = _createSessionId() {
+  }) : sessionStartedAt = clock.now(),
+       sessionId = _createSessionId() {
     output = RotationOutput.fromTerm(term, options);
   }
 
@@ -44,11 +47,30 @@ class RotationLogger {
   }
 
   void log(Level level, String message) {
+    logWithContext(level, message);
+  }
+
+  void logWithContext(
+    Level level,
+    String message, {
+    DateTime? timestamp,
+    List<String> tags = const <String>[],
+    Map<String, Object?> context = const <String, Object?>{},
+  }) {
     if (!_shouldLog(level)) {
       return;
     }
 
-    append('[${level.label}][${clock.now().toIso8601String()}]: $message');
+    final eventTime = timestamp ?? clock.now();
+    final rendered = options.plainTextOptions.format(
+      level: level,
+      message: message,
+      timestamp: eventTime,
+      tags: _mergeTags(tags),
+      context: _mergeContext(context, includeStructuredSessionId: false),
+      sessionId: sessionId,
+    );
+    append(rendered);
   }
 
   void logEvent(RotationLogEvent event) {
@@ -85,8 +107,29 @@ class RotationLogger {
   void append(String log) => output.append(log);
 
   Future<String> archiveLog() async {
+    return archiveLogs();
+  }
+
+  Future<String> archiveLogs({
+    String? archiveFileName,
+    List<String>? filePaths,
+  }) async {
     final logfilePath = await _logFilePath();
-    return await output.archive(logfilePath);
+    final files = await _resolveArchiveFiles(logfilePath, filePaths);
+    return _archiveFiles(
+      logfilePath,
+      files,
+      archiveFileName: archiveFileName ?? options.archiveFileName,
+    );
+  }
+
+  Future<String> archiveCurrentSessionLogs({
+    String? archiveFileName,
+  }) async {
+    return archiveLogs(
+      archiveFileName: archiveFileName,
+      filePaths: await listCurrentSessionLogFiles(),
+    );
   }
 
   Future<void> close() async {
@@ -109,10 +152,43 @@ class RotationLogger {
     return files.map((file) => file.absolute.path).toList(growable: false);
   }
 
+  Future<List<RotationLogFileInfo>> listLogFileInfos() async {
+    final logfilePath = await _logFilePath();
+    final logFiles = await output.logFiles(logfilePath);
+    final archiveFile = File(path.join(logfilePath.path, options.archiveFileName));
+    final files = <File>[
+      ...logFiles,
+      if (archiveFile.existsSync()) archiveFile,
+    ];
+    return _buildFileInfos(files);
+  }
+
+  Future<RotationLogFileInfo?> currentLogFileInfo() async {
+    final currentPath = logFileName;
+    if (currentPath.isEmpty || !File(currentPath).existsSync()) {
+      return null;
+    }
+
+    final infos = await _buildFileInfos(<File>[File(currentPath)]);
+    return infos.isEmpty ? null : infos.single;
+  }
+
+  Future<List<String>> listCurrentSessionLogFiles() async {
+    final allFiles = await listLogFiles();
+    return allFiles.where(_belongsToCurrentSession).toList(growable: false);
+  }
+
+  Future<List<RotationLogFileInfo>> listCurrentSessionLogFileInfos() async {
+    final currentSessionFiles = await listCurrentSessionLogFiles();
+    return _buildFileInfos(currentSessionFiles.map(File.new).toList(growable: false));
+  }
+
   Future<void> pruneLogs() async {
     final logfilePath = await _logFilePath();
     await output.prune(logfilePath);
   }
+
+  Future<void> flush() async {}
 
   Future<Directory> _logFilePath({bool useCache = true}) async {
     if (useCache && _resolvedLogDirectory != null) {
@@ -157,20 +233,109 @@ class RotationLogger {
   }
 
   RotationLogEvent _decorateEvent(RotationLogEvent event) {
-    final mergedContext = <String, Object?>{
-      ...options.defaultContext,
-      if (options.includeSessionId) options.sessionContextKey: sessionId,
-      ...event.context,
-    };
-    final mergedTags = <String>{
-      ...options.defaultTags,
-      ...event.tags,
-    }.toList(growable: false);
+    final mergedContext = _mergeContext(
+      event.context,
+      includeStructuredSessionId: true,
+    );
+    final mergedTags = _mergeTags(event.tags);
 
     return event.copyWith(
       tags: mergedTags,
       context: mergedContext,
     );
+  }
+
+  List<String> _mergeTags(List<String> tags) {
+    return <String>{
+      ...options.defaultTags,
+      ...tags,
+    }.toList(growable: false);
+  }
+
+  Map<String, Object?> _mergeContext(
+    Map<String, Object?> context, {
+    required bool includeStructuredSessionId,
+  }) {
+    return <String, Object?>{
+      ...options.defaultContext,
+      if (includeStructuredSessionId && options.includeSessionId)
+        options.sessionContextKey: sessionId,
+      ...context,
+    };
+  }
+
+  Future<List<File>> _resolveArchiveFiles(
+    Directory logfilePath,
+    List<String>? filePaths,
+  ) async {
+    if (filePaths == null) {
+      return await output.logFiles(logfilePath);
+    }
+
+    return filePaths
+        .map(File.new)
+        .where((file) => file.existsSync())
+        .toList(growable: false);
+  }
+
+  Future<String> _archiveFiles(
+    Directory logfilePath,
+    List<File> files, {
+    required String archiveFileName,
+  }) async {
+    final archivePath = path.join(logfilePath.path, archiveFileName);
+    final archiveFile = File(archivePath);
+    if (archiveFile.existsSync()) {
+      archiveFile.deleteSync();
+    }
+
+    final encoder = ZipFileEncoder()..create(archivePath);
+    for (final file in files) {
+      await encoder.addFile(file);
+    }
+    await encoder.close();
+    return archivePath;
+  }
+
+  Future<List<RotationLogFileInfo>> _buildFileInfos(List<File> files) async {
+    final infos = <RotationLogFileInfo>[];
+    for (final file in files) {
+      if (!file.existsSync()) {
+        continue;
+      }
+      final stat = file.statSync();
+      infos.add(
+        RotationLogFileInfo(
+          path: file.absolute.path,
+          name: path.basename(file.path),
+          sizeBytes: stat.size,
+          modifiedAt: stat.modified,
+          isActiveLog: file.absolute.path == logFileName,
+          isArchive: path.basename(file.path) == options.archiveFileName,
+          isCurrentSessionFile: _belongsToCurrentSession(file.absolute.path),
+        ),
+      );
+    }
+
+    infos.sort((a, b) => b.modifiedAt.compareTo(a.modifiedAt));
+    return infos;
+  }
+
+  bool _belongsToCurrentSession(String filePath) {
+    final basename = path.basename(filePath);
+    if (basename == options.activeLogFileName) {
+      return true;
+    }
+
+    final match = RegExp(
+      '^${RegExp.escape(options.fileNamePrefix)}-(\\d+)\\.log\$',
+    ).firstMatch(basename);
+    if (match == null) {
+      return false;
+    }
+
+    final createdAt = int.parse(match.group(1)!);
+    return createdAt >= sessionStartedAt.microsecondsSinceEpoch;
   }
 
   static String _createSessionId() {

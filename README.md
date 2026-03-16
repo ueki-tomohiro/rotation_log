@@ -22,6 +22,7 @@ time, line count, or file size, and can export the current log set as a ZIP.
 - Configurable minimum log level and structured log format.
 - Shared tags, shared context, and optional session metadata for structured logs.
 - Customizable structured log field names for downstream ingestion.
+- Configurable plain text formatting and richer log file management APIs.
 - Non-destructive `archiveLog()` export.
 - `listLogFiles()`, `pruneLogs()`, `clearLogs()` management APIs.
 - Structured JSON logging with `logJson()` and `logEvent()`.
