@@ -1,15 +1,17 @@
 part of rotation_log;
 
-enum RotationLogTermEnum { daily, week, month, line, custom }
+enum RotationLogTermEnum { daily, week, month, line, size, custom }
 
 class RotationLogTerm {
-  RotationLogTermEnum option;
+  final RotationLogTermEnum option;
   late int day;
   late int line;
+  late int size;
 
-  RotationLogTerm(this.option, {int? day, int? line}) {
+  RotationLogTerm(this.option, {int? day, int? line, int? size}) {
     this.line = 0;
     this.day = 0;
+    this.size = 0;
 
     switch (option) {
       case RotationLogTermEnum.daily:
@@ -26,6 +28,13 @@ class RotationLogTerm {
           this.line = line;
         } else {
           throw ArgumentError('option needs line');
+        }
+        break;
+      case RotationLogTermEnum.size:
+        if (size != null) {
+          this.size = size;
+        } else {
+          throw ArgumentError('option needs size');
         }
         break;
       case RotationLogTermEnum.custom:
@@ -46,4 +55,7 @@ class RotationLogTerm {
 
   factory RotationLogTerm.line(int line) =>
       RotationLogTerm(RotationLogTermEnum.line, line: line);
+
+  factory RotationLogTerm.size(int size) =>
+      RotationLogTerm(RotationLogTermEnum.size, size: size);
 }

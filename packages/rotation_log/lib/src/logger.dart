@@ -1,18 +1,29 @@
 part of rotation_log;
 
+typedef RotationLogDirectoryProvider = Future<Directory> Function();
+
 class RotationLogger {
-  RotationLogTerm term;
-  late RotationOutput output;
+  final RotationLogTerm term;
+  final RotationLogOptions options;
+  final RotationLogDirectoryProvider? directoryProvider;
+  late final RotationOutput output;
+  Directory? _resolvedLogDirectory;
+  bool _isInitialized = false;
 
   String get logFileName => output.logFileName;
 
-  RotationLogger(this.term) {
-    output = RotationOutput.fromTerm(term);
+  RotationLogger(
+    this.term, {
+    this.options = const RotationLogOptions(),
+    this.directoryProvider,
+  }) {
+    output = RotationOutput.fromTerm(term, options);
   }
 
   Future<void> init() async {
-    final logfilePath = await _logFilePath();
+    final logfilePath = await _logFilePath(useCache: false);
     await output.init(logfilePath);
+    _isInitialized = true;
   }
 
   void error(Error err) {
@@ -43,17 +54,55 @@ class RotationLogger {
   }
 
   Future<void> close() async {
-    final logfilePath = await _logFilePath();
-    await output.close(logfilePath);
+    if (!_isInitialized || _resolvedLogDirectory == null) {
+      return;
+    }
+
+    await output.close(_resolvedLogDirectory!);
   }
 
-  Future<Directory> _logFilePath() async {
+  Future<void> clearLogs() async {
+    final logfilePath = await _logFilePath();
+    await output.clear(logfilePath);
+    _isInitialized = false;
+  }
+
+  Future<List<String>> listLogFiles() async {
+    final logfilePath = await _logFilePath();
+    final files = await output.logFiles(logfilePath);
+    return files.map((file) => file.absolute.path).toList(growable: false);
+  }
+
+  Future<void> pruneLogs() async {
+    final logfilePath = await _logFilePath();
+    await output.prune(logfilePath);
+  }
+
+  Future<Directory> _logFilePath({bool useCache = true}) async {
+    if (useCache && _resolvedLogDirectory != null) {
+      return _resolvedLogDirectory!;
+    }
+
+    if (directoryProvider != null) {
+      final providedDirectory = await directoryProvider!.call();
+      if (!providedDirectory.existsSync()) {
+        _resolvedLogDirectory = await providedDirectory.create(recursive: true);
+        return _resolvedLogDirectory!;
+      }
+      _resolvedLogDirectory = providedDirectory;
+      return providedDirectory;
+    }
+
     final documents = await getApplicationSupportDirectory();
-    final logFilePath = Directory('${documents.path}/logs');
+    final logFilePath = Directory(
+      path.join(documents.path, options.directoryName),
+    );
     if (logFilePath.existsSync()) {
+      _resolvedLogDirectory = logFilePath;
       return logFilePath;
     } else {
-      return await logFilePath.create();
+      _resolvedLogDirectory = await logFilePath.create(recursive: true);
+      return _resolvedLogDirectory!;
     }
   }
 

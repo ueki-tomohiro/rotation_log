@@ -7,6 +7,6 @@ class RotationLogOutput extends LogOutput {
 
   @override
   void output(OutputEvent event) {
-    rotationLogger.log(event.level, event.lines.toString());
+    rotationLogger.log(event.level, event.lines.join('\n'));
   }
 }

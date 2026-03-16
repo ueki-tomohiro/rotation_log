@@ -3,30 +3,25 @@
 # rotation_log
 
 `rotation_log` is a Melos-managed Flutter workspace for a log rotation package.
-The package stores application logs under the app support directory, rotates them
-by retention period or line count, and can export the current logs as a ZIP file.
+The package writes logs into the application support directory, rotates them by
+time, line count, or file size, and can export the current log set as a ZIP.
 
 ## Repository layout
 
-- `packages/rotation_log`: Flutter package source code, tests, and published package metadata.
-- `packages/rotation_log/example`: Example app that writes logs and exports them with `OpenFile`.
-- `scripts/combine_test.sh`: Helper used by CI to merge test artifacts.
+- `packages/rotation_log`: publishable Flutter package.
+- `packages/rotation_log/example`: example app.
+- `scripts/combine_test.sh`: CI helper for combined test artifacts.
 
-## Package capabilities
+## Current feature set
 
-- Rotate logs by preset terms: `daily`, `week`, `month`.
-- Rotate logs by a custom number of days with `RotationLogTerm.day(...)`.
-- Keep only the latest N lines with `RotationLogTerm.line(...)`.
-- Export logs to `log.zip` with `archiveLog()`.
-- Forward logs from the `logger` package through `RotationLogOutput`.
-
-## Runtime behavior
-
-- Logs are stored in `getApplicationSupportDirectory()/logs`.
-- Day-based rotation creates files named `<microsecondsSinceEpoch>.log`.
-- Old day-based log files are removed during `init()` when they are older than the configured retention.
-- Line-based rotation writes to `rotation.log` and trims the file on `close()`.
-- `archiveLog()` closes the current sink before creating `log.zip`; call `init()` again before continuing to write logs.
+- Time-based rotation: `daily`, `week`, `month`, `day(n)`.
+- Rolling rotation by line count with archive retention.
+- Rolling rotation by file size with archive retention.
+- Automatic time-based rollover while the app is still running.
+- Configurable log directory name, file prefix, archive file name, and max archive count.
+- Non-destructive `archiveLog()` export.
+- `listLogFiles()`, `pruneLogs()`, `clearLogs()` management APIs.
+- Integration with the `logger` package through `RotationLogOutput`.
 
 ## Requirements
 
@@ -53,7 +48,7 @@ melos run test
 melos run test-ci
 ```
 
-## Basic usage
+## Package usage
 
 ```dart
 import 'dart:async';
@@ -63,11 +58,14 @@ import 'package:rotation_log/rotation_log.dart';
 
 final log = RotationLogger(
   RotationLogTerm.term(RotationLogTermEnum.daily),
+  options: const RotationLogOptions(
+    fileNamePrefix: 'app',
+    maxArchivedFiles: 7,
+  ),
 );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await log.init();
 
   runZonedGuarded(() {
@@ -76,37 +74,6 @@ Future<void> main() async {
 }
 ```
 
-## Using with `logger`
-
-```dart
-import 'package:logger/logger.dart';
-import 'package:rotation_log/rotation_log.dart';
-
-final rotationLogger = RotationLogger(RotationLogTerm.line(300));
-final logger = Logger(output: RotationLogOutput(rotationLogger));
-
-Future<void> main() async {
-  await rotationLogger.init();
-
-  logger.i('application started');
-  logger.e('unexpected error');
-}
-```
-
-## Example app
-
-Run the example application from the package directory:
-
-```bash
-cd packages/rotation_log/example
-flutter pub get
-flutter run
-```
-
 ## Package source
 
-The publishable package lives in `packages/rotation_log`. Package-specific files:
-
-- `packages/rotation_log/lib`: implementation
-- `packages/rotation_log/test`: automated tests
-- `packages/rotation_log/README.md`: package README used for distribution
+The publishable package lives in `packages/rotation_log`.

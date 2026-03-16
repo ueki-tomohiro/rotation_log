@@ -1,22 +1,28 @@
 # rotation_log
 
-`rotation_log` is a Flutter logging helper that writes logs to the application
-support directory and rotates them by retention period or line count.
+`rotation_log` is a Flutter logging helper that writes logs under the app
+support directory and rotates them by time, line count, or file size.
 
 ## Features
 
-- Rotate logs daily, weekly, monthly, or by a custom number of days.
-- Keep only the latest N lines with line-based rotation.
-- Archive logs to `log.zip`.
-- Integrate with the `logger` package through `RotationLogOutput`.
+- Rotate by `daily`, `week`, `month`, or `RotationLogTerm.day(...)`.
+- Rotate by line count with `RotationLogTerm.line(...)`.
+- Rotate by file size with `RotationLogTerm.size(...)`.
+- Keep only the newest archived files with `maxArchivedFiles`.
+- Export logs to ZIP without reopening the logger.
+- List, prune, or clear generated logs.
+- Forward logs from the `logger` package through `RotationLogOutput`.
 
-## Storage behavior
+## Configuration
 
-- Logs are created under `getApplicationSupportDirectory()/logs`.
-- Day-based rotation uses timestamp-based file names such as `<timestamp>.log`.
-- Files older than the configured retention are removed during `init()`.
-- Line-based rotation writes to `rotation.log` and trims the file on `close()`.
-- `archiveLog()` closes the active sink before exporting; call `init()` again if you want to continue logging.
+```dart
+const options = RotationLogOptions(
+  directoryName: 'logs',
+  fileNamePrefix: 'app',
+  archiveFileName: 'support_bundle.zip',
+  maxArchivedFiles: 5,
+);
+```
 
 ## Basic usage
 
@@ -28,11 +34,14 @@ import 'package:rotation_log/rotation_log.dart';
 
 final log = RotationLogger(
   RotationLogTerm.term(RotationLogTermEnum.daily),
+  options: const RotationLogOptions(
+    fileNamePrefix: 'app',
+    maxArchivedFiles: 7,
+  ),
 );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await log.init();
 
   runZonedGuarded(() {
@@ -41,11 +50,27 @@ Future<void> main() async {
 }
 ```
 
-## Custom retention
+## Rolling policies
 
 ```dart
 final keepThreeDays = RotationLogger(RotationLogTerm.day(3));
-final keepLast300Lines = RotationLogger(RotationLogTerm.line(300));
+final keepLast300Lines = RotationLogger(
+  RotationLogTerm.line(300),
+  options: const RotationLogOptions(maxArchivedFiles: 10),
+);
+final keepFilesUnder1Mb = RotationLogger(
+  RotationLogTerm.size(1024 * 1024),
+  options: const RotationLogOptions(maxArchivedFiles: 3),
+);
+```
+
+## Managing logs
+
+```dart
+final archivePath = await log.archiveLog();
+final files = await log.listLogFiles();
+await log.pruneLogs();
+await log.clearLogs();
 ```
 
 ## Using with `logger`
@@ -54,7 +79,10 @@ final keepLast300Lines = RotationLogger(RotationLogTerm.line(300));
 import 'package:logger/logger.dart';
 import 'package:rotation_log/rotation_log.dart';
 
-final rotationLogger = RotationLogger(RotationLogTerm.line(300));
+final rotationLogger = RotationLogger(
+  RotationLogTerm.line(300),
+  options: const RotationLogOptions(maxArchivedFiles: 10),
+);
 final logger = Logger(output: RotationLogOutput(rotationLogger));
 
 Future<void> main() async {

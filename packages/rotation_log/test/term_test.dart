@@ -19,4 +19,10 @@ void main() {
     expect(term.line, 300);
     expect(term.option, RotationLogTermEnum.line);
   });
+
+  test('create term size', () {
+    final term = RotationLogTerm.size(1024);
+    expect(term.size, 1024);
+    expect(term.option, RotationLogTermEnum.size);
+  });
 }

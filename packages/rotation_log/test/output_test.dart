@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:clock/clock.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rotation_log/rotation_log.dart';
 
@@ -9,45 +8,56 @@ void main() {
   test('create file', () {
     withClock(Clock.fixed(DateTime.parse('2020-11-10T12:00:00+09:00')), () {
       final term = RotationLogTerm.term(RotationLogTermEnum.week);
-      final output = DailyOutput(term.day);
+      final output = DailyOutput(term.day, const RotationLogOptions());
       expect(
         output.createFileName(),
         equals(
-          "${DateTime.parse("2020-11-10T12:00:00+09:00").microsecondsSinceEpoch}.log",
+          'rotation-${DateTime.parse("2020-11-10T12:00:00+09:00").microsecondsSinceEpoch}.log',
         ),
       );
     });
   });
 
   test('check rotation days', () {
-    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00')).run((
-      fake,
-    ) {
+    withClock(Clock.fixed(DateTime.parse('2020-11-10T12:00:00+09:00')), () {
       final term = RotationLogTerm.term(RotationLogTermEnum.week);
-      final output = DailyOutput(term.day);
-      final log = output.createFileName();
-      final file = File(log);
+      final output = DailyOutput(term.day, const RotationLogOptions());
+      final file = File(
+        'rotation-${DateTime.parse("2020-11-10T12:00:00+09:00").microsecondsSinceEpoch}.log',
+      );
       expect(output.isNeedRotation(file), false);
-      fake.elapse(const Duration(days: 8));
-      expect(output.isNeedRotation(file), true);
+      expect(
+        output.isNeedRotationFromDateTime(
+          DateTime.parse('2020-11-10T12:00:00+09:00'),
+          DateTime.parse('2020-11-18T12:00:00+09:00'),
+        ),
+        true,
+      );
     });
   });
 
-  test('check rotation line', () {
-    FakeAsync(initialTime: DateTime.parse('2020-11-10T12:00:00+09:00')).run((
-      fakeClock,
-    ) {
-      final output = LineOutput(100);
-      output.init(Directory.current);
-      final log = output.logFileName;
-      final file = File(log);
-      var list = List.generate(30, (i) => i.toString());
-      file.writeAsStringSync(list.join('\n'));
-      expect(output.isNeedRotation(file), false);
-      list = List.generate(200, (i) => i.toString());
-      file.writeAsStringSync(list.join('\n'));
-      expect(output.isNeedRotation(file), true);
-      file.deleteSync();
-    });
+  test('check rotation line by line count', () {
+    final directory = Directory.systemTemp.createTempSync('rotation_log_output_');
+    addTearDown(() => directory.deleteSync(recursive: true));
+
+    final output = LineOutput(2, const RotationLogOptions());
+    output.init(directory);
+
+    final file = File(output.logFileName);
+    file.writeAsStringSync('1\n2\n');
+    expect(output.isNeedRotation(file), true);
+  });
+
+  test('check rotation size by bytes', () {
+    final directory = Directory.systemTemp.createTempSync('rotation_log_size_');
+    addTearDown(() => directory.deleteSync(recursive: true));
+
+    final output = SizeOutput(8, const RotationLogOptions());
+    output.init(directory);
+
+    final file = File(output.logFileName);
+    file.writeAsStringSync('1234\n');
+    expect(output.isNeedRotation(file, nextLog: '1234'), true);
+    expect(output.isNeedRotation(file, nextLog: '1'), false);
   });
 }
