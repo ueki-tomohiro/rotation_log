@@ -334,5 +334,72 @@ void main() {
 
       expect(payload['context']['sessionId'], logger.sessionId);
     });
+
+    test('RotationLogOutput keeps rendered lines in plain mode', () async {
+      final logger = createLogger(RotationLogTerm.line(10));
+      final output = RotationLogOutput(logger);
+
+      await logger.init();
+      output.output(
+        OutputEvent(
+          LogEvent(Level.info, 'origin message'),
+          <String>['first line', 'second line'],
+        ),
+      );
+
+      final lines = await File(logger.logFileName).readAsLines();
+      expect(lines, hasLength(2));
+      expect(lines.first, contains('first line'));
+      expect(lines.last, contains('second line'));
+    });
+
+    test('RotationLogOutput can write structured logger events', () async {
+      final logger = createLogger(
+        RotationLogTerm.line(10),
+        options: const RotationLogOptions(
+          defaultContext: <String, Object?>{'service': 'api'},
+        ),
+      );
+      final output = RotationLogOutput(
+        logger,
+        options: const RotationLogOutputOptions(
+          structured: true,
+          tags: <String>['logger'],
+          context: <String, Object?>{'source': 'package:logger'},
+        ),
+      );
+
+      await logger.init();
+      output.output(
+        OutputEvent(
+          LogEvent(
+            Level.error,
+            'origin message',
+            time: DateTime.parse('2026-03-17T12:34:56Z'),
+            error: 'timeout',
+            stackTrace: StackTrace.current,
+          ),
+          <String>['rendered line 1', 'rendered line 2'],
+        ),
+      );
+
+      final payload = jsonDecode(
+        (await File(logger.logFileName).readAsLines()).single,
+      ) as Map<String, dynamic>;
+
+      expect(payload['level'], 'error');
+      expect(payload['message'], 'origin message');
+      expect(payload['error'], 'timeout');
+      expect(payload['timestamp'], '2026-03-17T12:34:56.000Z');
+      expect(payload['tags'], <String>['logger']);
+      expect(
+        payload['context'],
+        <String, dynamic>{
+          'service': 'api',
+          'source': 'package:logger',
+          'renderedLines': <String>['rendered line 1', 'rendered line 2'],
+        },
+      );
+    });
   });
 }

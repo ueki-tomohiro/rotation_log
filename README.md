@@ -24,6 +24,7 @@ time, line count, or file size, and can export the current log set as a ZIP.
 - Non-destructive `archiveLog()` export.
 - `listLogFiles()`, `pruneLogs()`, `clearLogs()` management APIs.
 - Structured JSON logging with `logJson()` and `logEvent()`.
+- Structured forwarding from the `logger` package via `RotationLogOutputOptions`.
 - Integration with the `logger` package through `RotationLogOutput`.
 
 ## Requirements

@@ -124,3 +124,18 @@ Future<void> main() async {
   logger.e('unexpected error');
 }
 ```
+
+If you want to preserve `logger` package metadata as structured logs:
+
+```dart
+final logger = Logger(
+  output: RotationLogOutput(
+    rotationLogger,
+    options: const RotationLogOutputOptions(
+      structured: true,
+      tags: ['logger'],
+      context: {'source': 'package:logger'},
+    ),
+  ),
+);
+```
