@@ -15,7 +15,7 @@ cd packages/rotation_log && flutter test test/logger_test.dart   # 単体
 
 変更後は `melos run lint` と `melos run test` を通すこと（CI は PR で同じものを実行する）。
 
-melos は `dart pub global activate melos 6.3.3` のグローバル版を使う。設定は melos 6 形式の `melos.yaml` にあり、ルート `pubspec.yaml` の `melos: ^7.4.0` で動かすと `NoScriptException` になる。
+melos は `dart pub global activate melos 6.3.3` のグローバル版を使う。設定は melos 6 形式の `melos.yaml` にあり、melos 7 以降で動かすと `NoScriptException` になる。
 
 ## コード規約
 
