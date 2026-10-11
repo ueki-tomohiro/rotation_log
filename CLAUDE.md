@@ -10,10 +10,12 @@ melos run analyze               # dart analyze
 melos run format                # dart format packages（ファイルを書き換える）
 melos run lint                  # analyze + format。CI と同じ
 melos run test                  # example/ を除く全テスト
+melos run test-ci               # CI 用。各パッケージに test.json（--machine 出力）を生成
+melos run combine               # test.json / lcov を report/ に集約
 cd packages/rotation_log && flutter test test/logger_test.dart   # 単体
 ```
 
-変更後は `melos run lint` と `melos run test` を通すこと（CI は PR で同じものを実行する）。
+変更後は `melos run lint` と `melos run test` を通すこと。PR の CI は `melos run lint` の後、`melos run test-ci` → `melos run combine` で `report/test.json` を作り、`flutter-test-action` が結果を投稿する。
 
 melos は `dart pub global activate melos 6.3.3` のグローバル版を使う。設定は melos 6 形式の `melos.yaml` にあり、melos 7 以降で動かすと `NoScriptException` になる。
 
@@ -40,7 +42,9 @@ melos は `dart pub global activate melos 6.3.3` のグローバル版を使う�
 
 ## 実装上の挙動（コードを読む前に知っておくと良いこと）
 
-- アクティブファイルは `{prefix}.log`。ローテーション時に `{prefix}-{microseconds}.log` へリネームされる
+- アクティブファイル名はローテーション方式で異なる
+  - `line` / `size`：アクティブファイルは `{prefix}.log`。ローテーション時に `{prefix}-{microseconds}.log` へリネームされる
+  - `daily` / `week` / `month` / `custom`：`{prefix}-{microseconds}.log` を直接作成し、期間が過ぎたら新しいファイルを作る（リネームしない）
 - `RotationLogger` は生成時に `sessionId`（`{microseconds}-{pid}`）と `sessionStartedAt` を持ち、`listCurrentSessionLogFiles()` / `archiveCurrentSessionLogs()` はこれで現セッションのファイルを判定する
 - `directoryProvider` 省略時は `getApplicationSupportDirectory()/{directoryName}`（`RotationLogOptions.directoryName`、既定 `logs`）
 
