@@ -8,17 +8,11 @@ runs:
       with:
         java-version: "17"
         distribution: "temurin"
-    - name: install mise tools
-      uses: jdx/mise-action@v2
-      with:
-        install: true
-        cache: true
     - name: restore pub cache
       uses: actions/cache@v4
       with:
-        path: |
-          ~/.pub-cache
-        key: ${{ runner.os }}-pub-cache-${{ hashFiles('.tool-versions', '**/pubspec.lock') }}
+        path: ~/.pub-cache
+        key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pub-cache-
     - name: restore pubspec cache
@@ -28,11 +22,17 @@ runs:
           .dart_tool
           packages/rotation_log/.dart_tool
           packages/rotation_log/example/.dart_tool
-        key: ${{ runner.os }}-dart-tool-${{ hashFiles('**/pubspec.lock') }}
+        key: ${{ runner.os }}-dart-tool-${{ hashFiles('**/pubspec.yaml') }}
         restore-keys: |
           ${{ runner.os }}-dart-tool-
+    - name: install mise tools
+      uses: jdx/mise-action@v5
+      with:
+        # Flutter restored from the mise cache re-bootstraps a mismatched Dart SDK
+        # and breaks `flutter pub get`, so always install it fresh.
+        cache: false
     - name: install melos command
       run: |
-        dart pub global activate melos
+        dart pub global activate melos 7.4.0
         echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
       shell: bash
