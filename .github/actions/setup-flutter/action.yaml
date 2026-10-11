@@ -33,6 +33,6 @@ runs:
         cache: false
     - name: install melos command
       run: |
-        dart pub global activate melos 7.4.0
+        dart pub global activate melos 6.3.3
         echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
       shell: bash
