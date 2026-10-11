@@ -1,5 +1,5 @@
 name: setup flutter
-description: setup flutter with asdf
+description: setup flutter with mise
 runs:
   using: "composite"
   steps:
@@ -8,16 +8,19 @@ runs:
       with:
         java-version: "17"
         distribution: "temurin"
-    - name: restore asdf cache
+    - name: install mise tools
+      uses: jdx/mise-action@v2
+      with:
+        install: true
+        cache: true
+    - name: restore pub cache
       uses: actions/cache@v4
       with:
         path: |
-          ~/.asdf
           ~/.pub-cache
-          ~/Library/Caches/flutter
-        key: ${{ runner.os }}-asdf-${{ hashFiles('.tool-versions') }}
+        key: ${{ runner.os }}-pub-cache-${{ hashFiles('.tool-versions', '**/pubspec.lock') }}
         restore-keys: |
-          ${{ runner.os }}-asdf-
+          ${{ runner.os }}-pub-cache-
     - name: restore pubspec cache
       uses: actions/cache@v4
       with:
@@ -28,17 +31,8 @@ runs:
         key: ${{ runner.os }}-dart-tool-${{ hashFiles('**/pubspec.lock') }}
         restore-keys: |
           ${{ runner.os }}-dart-tool-
-    - name: install asdf tools
-      run: |
-        if [ ! -d "$HOME/.asdf" ]; then
-          git clone https://github.com/asdf-vm/asdf.git "$HOME/.asdf" --branch v0.18.0
-        fi
-        echo "$HOME/.asdf/bin" >> "$GITHUB_PATH"
-        echo "$HOME/.asdf/shims" >> "$GITHUB_PATH"
-        asdf plugin add dart || true
-        asdf plugin add flutter || true
-        asdf install
-      shell: bash
     - name: install melos command
-      run: dart pub global activate melos
+      run: |
+        dart pub global activate melos
+        echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
       shell: bash
