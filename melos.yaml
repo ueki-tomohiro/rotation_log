@@ -32,7 +32,7 @@ scripts:
         - "*example*"
   
   test-ci:
-    exec: flutter test --machine > test.json
+    exec: flutter test --no-pub --machine > test.json
     packageFilters:
       dirExists:
         - test
