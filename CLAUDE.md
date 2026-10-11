@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`rotation_log` はログファイルのローテーション（日数・行数・サイズ）、構造化 JSON ログ、ZIP エクスポートを提供する Flutter パッケージ。Melos モノレポで、本体は `packages/rotation_log/`。Flutter/Dart のバージョンは `.tool-versions`（asdf）が正。
+`rotation_log` はログファイルのローテーション（日数・行数・サイズ）、構造化 JSON ログ、ZIP エクスポートを提供する Flutter パッケージ。Melos モノレポで、本体は `packages/rotation_log/`。Flutter/Dart のバージョンは `.tool-versions` が正（ローカルは mise、CI は asdf で同ファイルを読む）。
 
 ## コマンド
 
