@@ -31,9 +31,9 @@ time, line count, or file size, and can export the current log set as a ZIP.
 
 ## Requirements
 
-- Dart `>=3.11.1 <4.0.0`
-- Flutter `>=3.41.4`
-- `.tool-versions` pins `dart 3.11.1` and `flutter 3.41.4-stable`
+- Dart `>=3.13.0 <4.0.0`
+- Flutter `>=3.47.0`
+- `.tool-versions` pins `flutter 3.47.6` (Dart comes bundled with Flutter)
 
 ## Setup
 
