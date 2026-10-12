@@ -1,3 +1,7 @@
+## 0.1.2
+
+* support Flutter 3.47 / Dart 3.13 and raise minimum SDK constraints
+
 ## 0.1.1
 
 * improve pub.dev package metadata and API documentation

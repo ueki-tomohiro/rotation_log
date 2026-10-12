@@ -24,9 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(title: 'Rotation Log'),
     );
   }
@@ -65,42 +63,37 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
+      appBar: AppBar(title: Text(widget.title)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('Add log:'),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ],
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Text(
-                'Add log:',
-              ),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-            ],
-          ),
+      ),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(left: 24),
+        child: Row(
+          children: [
+            FloatingActionButton(
+              onPressed: _downloadLog,
+              tooltip: 'Download',
+              child: const Icon(Icons.download),
+            ),
+            const SizedBox(width: 8),
+            FloatingActionButton(
+              onPressed: _addLog,
+              tooltip: 'Add log',
+              child: const Icon(Icons.add),
+            ),
+          ],
         ),
-        floatingActionButton: Container(
-          margin: const EdgeInsets.only(left: 24),
-          child: Row(
-            children: [
-              FloatingActionButton(
-                onPressed: _downloadLog,
-                tooltip: 'Download',
-                child: const Icon(Icons.download),
-              ),
-              const SizedBox(
-                width: 8,
-              ),
-              FloatingActionButton(
-                onPressed: _addLog,
-                tooltip: 'Add log',
-                child: const Icon(Icons.add),
-              ),
-            ],
-          ),
-        ));
+      ),
+    );
   }
 }

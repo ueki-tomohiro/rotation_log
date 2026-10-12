@@ -12,7 +12,9 @@ void main() {
     late Directory tempDirectory;
 
     setUp(() {
-      tempDirectory = Directory.systemTemp.createTempSync('rotation_log_logger_');
+      tempDirectory = Directory.systemTemp.createTempSync(
+        'rotation_log_logger_',
+      );
     });
 
     tearDown(() {
@@ -50,7 +52,9 @@ void main() {
       final fakeClock = Clock(() => now.add(elapsed));
 
       await withClock(fakeClock, () async {
-        final log = createLogger(RotationLogTerm.term(RotationLogTermEnum.daily));
+        final log = createLogger(
+          RotationLogTerm.term(RotationLogTermEnum.daily),
+        );
         await log.init();
 
         final firstFile = log.logFileName;
@@ -80,7 +84,10 @@ void main() {
       logger.log(Level.info, '5');
 
       final files = await logger.listLogFiles();
-      expect(files.where((file) => file.endsWith('rotation.log')), hasLength(1));
+      expect(
+        files.where((file) => file.endsWith('rotation.log')),
+        hasLength(1),
+      );
       expect(files.where((file) => file.endsWith('.log')), hasLength(3));
     });
 
@@ -127,7 +134,9 @@ void main() {
     });
 
     test('custom directory name and prefix are respected', () async {
-      final baseDirectory = Directory.systemTemp.createTempSync('rotation_log_base_');
+      final baseDirectory = Directory.systemTemp.createTempSync(
+        'rotation_log_base_',
+      );
       addTearDown(() => baseDirectory.deleteSync(recursive: true));
 
       final logger = RotationLogger(
@@ -136,9 +145,8 @@ void main() {
           directoryName: 'custom_logs',
           fileNamePrefix: 'app',
         ),
-        directoryProvider: () async => Directory(
-          path.join(baseDirectory.path, 'custom_logs'),
-        ),
+        directoryProvider: () async =>
+            Directory(path.join(baseDirectory.path, 'custom_logs')),
       );
 
       await logger.init();
@@ -176,7 +184,10 @@ void main() {
       );
 
       final line = (await File(logger.logFileName).readAsLines()).single;
-      expect(line, contains('APP [info] [2026/03/17 12:34:56] [app,startup] boot'));
+      expect(
+        line,
+        contains('APP [info] [2026/03/17 12:34:56] [app,startup] boot'),
+      );
       expect(line, contains('build=42'));
       expect(line, contains('region=jp'));
       expect(line, contains('sessionId=${logger.sessionId}'));
@@ -190,10 +201,7 @@ void main() {
         Level.warning,
         'network retry',
         tags: const <String>['network', 'retry'],
-        context: const <String, Object?>{
-          'attempt': 2,
-          'endpoint': '/health',
-        },
+        context: const <String, Object?>{'attempt': 2, 'endpoint': '/health'},
       );
 
       final lines = await File(logger.logFileName).readAsLines();
@@ -202,10 +210,10 @@ void main() {
       expect(payload['level'], 'warning');
       expect(payload['message'], 'network retry');
       expect(payload['tags'], <String>['network', 'retry']);
-      expect(
-        payload['context'],
-        <String, dynamic>{'attempt': 2, 'endpoint': '/health'},
-      );
+      expect(payload['context'], <String, dynamic>{
+        'attempt': 2,
+        'endpoint': '/health',
+      });
       expect(payload['timestamp'], isA<String>());
     });
 
@@ -292,10 +300,7 @@ void main() {
         RotationLogTerm.line(10),
         options: const RotationLogOptions(
           defaultTags: <String>['app', 'mobile'],
-          defaultContext: <String, Object?>{
-            'appVersion': '1.2.3',
-            'build': 42,
-          },
+          defaultContext: <String, Object?>{'appVersion': '1.2.3', 'build': 42},
         ),
       );
 
@@ -312,24 +317,18 @@ void main() {
       ) as Map<String, dynamic>;
 
       expect(payload['tags'], <String>['app', 'mobile', 'startup']);
-      expect(
-        payload['context'],
-        <String, dynamic>{
-          'appVersion': '1.2.3',
-          'build': 42,
-          'region': 'ap-northeast-1',
-        },
-      );
+      expect(payload['context'], <String, dynamic>{
+        'appVersion': '1.2.3',
+        'build': 42,
+        'region': 'ap-northeast-1',
+      });
     });
 
     test('event context overrides default context keys', () async {
       final logger = createLogger(
         RotationLogTerm.line(10),
         options: const RotationLogOptions(
-          defaultContext: <String, Object?>{
-            'region': 'global',
-            'build': 1,
-          },
+          defaultContext: <String, Object?>{'region': 'global', 'build': 1},
         ),
       );
 
@@ -344,10 +343,7 @@ void main() {
         (await File(logger.logFileName).readAsLines()).single,
       ) as Map<String, dynamic>;
 
-      expect(
-        payload['context'],
-        <String, dynamic>{'region': 'jp', 'build': 1},
-      );
+      expect(payload['context'], <String, dynamic>{'region': 'jp', 'build': 1});
     });
 
     test('session id is injected when enabled', () async {
@@ -381,9 +377,8 @@ void main() {
     });
 
     test('listCurrentSessionLogFiles excludes older archived logs', () async {
-      final oldFile = File(
-        path.join(tempDirectory.path, 'rotation-1.log'),
-      )..createSync(recursive: true);
+      final oldFile = File(path.join(tempDirectory.path, 'rotation-1.log'))
+        ..createSync(recursive: true);
       oldFile.writeAsStringSync('legacy');
 
       final logger = createLogger(RotationLogTerm.line(1));
@@ -428,10 +423,10 @@ void main() {
 
       await logger.init();
       output.output(
-        OutputEvent(
-          LogEvent(Level.info, 'origin message'),
-          <String>['first line', 'second line'],
-        ),
+        OutputEvent(LogEvent(Level.info, 'origin message'), <String>[
+          'first line',
+          'second line',
+        ]),
       );
 
       final lines = await File(logger.logFileName).readAsLines();
@@ -479,14 +474,11 @@ void main() {
       expect(payload['error'], 'timeout');
       expect(payload['timestamp'], '2026-03-17T12:34:56.000Z');
       expect(payload['tags'], <String>['logger']);
-      expect(
-        payload['context'],
-        <String, dynamic>{
-          'service': 'api',
-          'source': 'package:logger',
-          'renderedLines': <String>['rendered line 1', 'rendered line 2'],
-        },
-      );
+      expect(payload['context'], <String, dynamic>{
+        'service': 'api',
+        'source': 'package:logger',
+        'renderedLines': <String>['rendered line 1', 'rendered line 2'],
+      });
     });
 
     test('structured log schema can rename output keys', () async {

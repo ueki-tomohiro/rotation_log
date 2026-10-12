@@ -51,9 +51,8 @@ class DailyOutput implements RotationOutput {
       _createCurrentFile();
     }
 
-    File(
-      _logFileName,
-    ).writeAsStringSync('$log\n', mode: FileMode.writeOnlyAppend);
+    File(_logFileName)
+        .writeAsStringSync('$log\n', mode: FileMode.writeOnlyAppend);
   }
 
   @override
