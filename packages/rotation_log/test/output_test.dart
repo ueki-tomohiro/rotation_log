@@ -37,7 +37,9 @@ void main() {
   });
 
   test('check rotation line by line count', () {
-    final directory = Directory.systemTemp.createTempSync('rotation_log_output_');
+    final directory = Directory.systemTemp.createTempSync(
+      'rotation_log_output_',
+    );
     addTearDown(() => directory.deleteSync(recursive: true));
 
     final output = LineOutput(2, const RotationLogOptions());
