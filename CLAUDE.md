@@ -1,123 +1,53 @@
 # CLAUDE.md
 
-このファイルは、このリポジトリでコードを扱う際のClaude Code (claude.ai/code) への指針を提供します。
+`rotation_log` はログファイルのローテーション（日数・行数・サイズ）、構造化 JSON ログ、ZIP エクスポートを提供する Flutter パッケージ。Melos モノレポで、本体は `packages/rotation_log/`。Flutter のバージョンは `.tool-versions` が正（ローカル・CI とも mise で管理。Dart は Flutter 同梱のものを使う）。
 
-## プロジェクト概要
-
-これは `rotation_log` という名前のFlutterパッケージで、ログファイルのローテーション機能を提供します。Melosを使用してモノレポとして管理されており、Flutter SDKとDart SDKの管理には `asdf` を使用しています。
-
-## 必須コマンド
-
-### 開発セットアップ
+## コマンド
 
 ```bash
-# プロジェクトのブートストラップ（依存関係のインストール）
-melos bootstrap
-
-# すべてのlintチェックを実行（analyze + format）
-melos run lint
-
-# 静的解析のみを実行
-melos run analyze
-
-# コードをフォーマット
-melos run format
-
-# すべてのテストを実行
-melos run test
-
-# CIモードでテストを実行（JSON出力）
-melos run test-ci
-
-# 単一のテストファイルを実行
-cd packages/rotation_log && flutter test test/specific_test.dart
+melos bootstrap                 # 依存解決
+melos run analyze               # dart analyze
+melos run format                # dart format packages（ファイルを書き換える）
+melos run lint                  # analyze + format。CI と同じ
+melos run test                  # example/ を除く全テスト
+melos run test-ci               # CI 用。各パッケージに test.json（--machine 出力）を生成
+melos run combine               # test.json / lcov を report/ に集約
+cd packages/rotation_log && flutter test test/logger_test.dart   # 単体
 ```
 
-### Flutterバージョン管理
+変更後は `melos run lint` と `melos run test` を通すこと。PR の CI は `melos run lint` の後、`melos run test-ci` → `melos run combine` で `report/test.json` を作り、`flutter-test-action` が結果を投稿する。
 
-- プロジェクトは `asdf` を使用し、バージョンは `.tool-versions` に定義されています
-- 現在のFlutterバージョン: `3.41.4-stable`
-- Dart SDK: `3.11.1`
+melos は `dart pub global activate melos 6.3.3` のグローバル版を使う。設定は melos 6 形式の `melos.yaml` にあり、melos 7 以降で動かすと `NoScriptException` になる。
 
-## アーキテクチャ
+## コード規約
 
-### コード構成
+`analysis_options.yaml` の主なポイント：
 
-パッケージはDartの `part/part of` パターンを使用し、以下の構造になっています：
+- `unawaited_futures` はエラー。意図的に待たない場合は `unawaited()` で明示する
+- パブリック API には dartdoc 必須（pub.dev のスコアに影響する）
+- import は `package:` 形式、文字列はシングルクォート
 
-- `lib/rotation_log.dart` - パブリックAPIをエクスポートするメインライブラリエントリーポイント
-- `lib/src/`:
-  - `daily.dart` - 日次ローテーション実装
-  - `line.dart` - 行数ベースのローテーション実装
-  - `size.dart` - ファイルサイズベースのローテーション実装
-  - `logger.dart` - ファイル書き込みとローテーションを処理するコアロガー (`RotationLogger`)
-  - `output.dart` - `logger` パッケージとの統合 (`RotationLogOutput`)
-  - `rotation.dart` - `RotationOutput` 抽象クラスとファクトリー
-  - `term.dart` - ローテーション期間の設定 (`RotationLogTerm`)
-  - `options.dart` - ロガー設定 (`RotationLogOptions`, `RotationStructuredLogSchema`)
-  - `event.dart` - 構造化ログイベント (`RotationLogEvent`)
-  - `plain_text.dart` - プレーンテキストフォーマット設定 (`RotationPlainTextOptions`)
-  - `file_info.dart` - ログファイルメタデータ (`RotationLogFileInfo`)
+## ライブラリ構成の注意
 
-### 主要なデザインパターン
+`lib/rotation_log.dart` が唯一のライブラリで、`lib/src/*.dart` はすべて `part` ファイル。
 
-1. **ファクトリーパターン**: `RotationLogTerm` は異なるローテーション戦略のためのファクトリーコンストラクタを提供：
-   - `RotationLogTerm.term()` - enumで戦略を指定
-   - `RotationLogTerm.day(int)` - カスタム日数でのローテーション
-   - `RotationLogTerm.line(int)` - 行数ベースのローテーション
-   - `RotationLogTerm.size(int)` - ファイルサイズベースのローテーション（バイト）
-   - `RotationLogTermEnum.daily/week/month` - 日次・週次・月次のプリセット
+- 新しいファイルを足すときは `rotation_log.dart` に `part 'src/xxx.dart';` を追加し、ファイル側は `part of 'package:rotation_log/rotation_log.dart';` とする
+- `part` ファイルは import を持てないので、新しい依存の import は `rotation_log.dart` に追加する
+- 公開したくないシンボルは `_` プレフィックスにする（`part` 構成なのでライブラリ内では共有される）
 
-2. **ストラテジーパターン**: `RotationOutput` 抽象クラスを `DailyOutput`、`LineOutput`、`SizeOutput` が実装。`RotationOutput.fromTerm()` ファクトリーで戦略を生成
+## テストの書き方
 
-3. **統合パターン**: `RotationLogOutput` (`LogOutput` サブクラス) が `logger` パッケージと統合。プレーンテキストまたは構造化JSON形式でログ出力
+- ファイル I/O は `directoryProvider: () async => tempDirectory` で一時ディレクトリに向ける（`path_provider` はモックしない）。`tearDown` で削除する
+- 時間依存の処理は `clock` パッケージの `withClock(Clock(...), ...)` で制御する。実装側でも `DateTime.now()` ではなく `clock.now()` を使う
 
-### コアクラス
+## 実装上の挙動（コードを読む前に知っておくと良いこと）
 
-- `RotationLogger`: ログの書き込み・ローテーション・アーカイブを管理するメインクラス
-- `RotationLogOutput`: `logger` パッケージとの統合ポイント
-- `RotationLogTerm`: ローテーション間隔の設定
-- `RotationLogOptions`: ディレクトリ名、ファイル名プレフィックス、ログレベル、構造化ログ設定など
-- `RotationLogEvent`: 構造化ログの1イベント（level, message, tags, context, error, stackTrace）
-- `RotationPlainTextOptions`: プレーンテキストフォーマットのカスタマイズ（タイムスタンプパターン等）
-- `RotationLogFileInfo`: ログファイルのメタデータ（パス、サイズ、更新日時、現在のセッションか等）
-- `RotationStructuredLogSchema`: 構造化ログのJSONキー名のカスタマイズ
+- アクティブファイル名はローテーション方式で異なる
+  - `line` / `size`：アクティブファイルは `{prefix}.log`。ローテーション時に `{prefix}-{microseconds}.log` へリネームされる
+  - `daily` / `week` / `month` / `custom`：`{prefix}-{microseconds}.log` を直接作成し、期間が過ぎたら新しいファイルを作る（リネームしない）
+- `RotationLogger` は生成時に `sessionId`（`{microseconds}-{pid}`）と `sessionStartedAt` を持ち、`listCurrentSessionLogFiles()` / `archiveCurrentSessionLogs()` はこれで現セッションのファイルを判定する
+- `directoryProvider` 省略時は `getApplicationSupportDirectory()/{directoryName}`（`RotationLogOptions.directoryName`、既定 `logs`）
 
-## テストアプローチ
+## リリース
 
-- ユニットテストは `packages/rotation_log/test/` にあります
-- テストは時間のモックに `clock` パッケージを使用
-- パスプロバイダーは `setMockMethodCallHandler` を使用してモック化
-- 特定のテストの実行: `cd packages/rotation_log && flutter test test/[test_file].dart`
-
-## コード品質基準
-
-プロジェクトは `analysis_options.yaml` を通じて厳格なlintルールを適用：
-
-- 暗黙的なキャストや動的型の禁止
-- パッケージインポートの必須化
-- パブリックAPIのドキュメント必須
-- 文字列にはシングルクォートを使用
-- 待機していないFutureはエラー
-
-## CI/CD
-
-GitHub Actionsワークフローが実行：
-
-1. Lintチェック (`melos run lint`)
-2. カバレッジレポート付きユニットテスト
-3. `asdf` でFlutter/DartをセットアップするカスタムGitHub Actionを使用
-4. 高速ビルドのための依存関係キャッシュ
-
-## 重要な実装詳細
-
-1. **ファイルローテーション**: ローテーション時、古いログファイルはマイクロ秒タイムスタンプ付き (`{prefix}-{microseconds}.log`) でリネームされ、新しいアクティブファイル (`{prefix}.log`) が作成されます
-2. **セッション管理**: `RotationLogger` はインスタンス生成時に `sessionId`（`{microseconds}-{pid}`）と `sessionStartedAt` を記録し、現在のセッションのファイルを識別できます
-3. **アーカイブ**: `archiveLogs()` / `archiveCurrentSessionLogs()` メソッドが `archive` パッケージを使用してログファイルのZIPアーカイブを作成
-4. **ログ形式**:
-   - プレーンテキスト: `logWithContext()` / `log()` で `RotationPlainTextOptions` に従ってフォーマット
-   - 構造化JSON: `logJson()` / `logEvent()` で `RotationLogEvent` をJSONエンコード
-5. **ファイル管理API**: `listLogFiles()`、`listLogFileInfos()`、`listCurrentSessionLogFiles()`、`pruneLogs()`、`clearLogs()` でファイルを管理
-6. **カスタムディレクトリ**: `directoryProvider` コールバックで任意のディレクトリを指定可能。省略時は `getApplicationSupportDirectory()` 配下の `logs/` を使用
-7. **パス管理**: `path_provider` で各プラットフォームに適切なディレクトリを取得
-8. **スタックトレース**: `stack_trace` パッケージを使用してスタックトレースを整形
+`packages/rotation_log/pubspec.yaml` の `version` と `CHANGELOG.md` を同じコミットで更新する。`packages/rotation_log/logs/` は生成物で `.pubignore` 済み。
